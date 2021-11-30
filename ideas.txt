@@ -1,0 +1,19 @@
+Ideas:
+- Create a Text thing where we can write logs for stuff that happens.
+Would be cool for a more complicate game with events. E.g. maybe have
+random events like generators breaking down, or natural disasters hampering
+production.
+
+- Maybe put all statements that use .after() in one function.
+Or maybe use .after() to call one funnction, and that one function does
+all the increasing. It looks weird if multiple labels are updating
+but they all update at different times.
+
+- We can have colors for the +#/sec, e.g. green if it's regular, orange or
+yellow for special bonuses, or red if we implement some feature that will
+decrease the quantity per second.
+
+- Thinking of adding EXP. Finishing certain achievements (e.g. build 1
+standard generator, build 10 standard generators, build 100 standard
+generators, etc.) will give EXP which will be shown by a Progressbar which will be in a separate Frame. Reaching certain levels can unlock new bonuses or
+powerups that the player can buy.
