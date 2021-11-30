@@ -1,6 +1,6 @@
 """
 Incremental game - GUI project
-Layout idea and the standard points generator is modeled on https://kittensgame.com/web/#
+Layout idea and concepts are modeled on https://kittensgame.com/web/#
 """
 import tkinter as tk
 from tkinter import ttk
