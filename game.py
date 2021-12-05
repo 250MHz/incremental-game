@@ -36,6 +36,10 @@ class MainApplication:
         ttk.Label(self.r_frame, text='Ice Cream').grid(column=0, row=2, sticky='W')
         self.ice_cream_label = ttk.Label(self.r_frame, textvariable=self.ice_cream)
         self.ice_cream_label.grid(column=1, row=2, sticky='W')
+        # ice cream per second
+        self.ice_cream_per_second = tk.StringVar()
+        self.ice_cream_per_second_lb = ttk.Label(self.r_frame, textvariable=self.ice_cream_per_second)
+        self.ice_cream_per_second_lb.grid(column=2, row=2, sticky='W')
         # TODO: maybe make a hovertip over the milk per second label to show where the milk per second are coming from
         # bonuses / combos
         # TODO: add new labels for combos or bonuses
@@ -53,15 +57,24 @@ class MainApplication:
         self.collect_b_hovertip = Hovertip(self.collect_b, 'Collect some milk...', hover_delay=10)
         # cow
         self.cow_num = 0
-        self.cow_cost = 10 # default cost is 10
+        self.cow_cost = 10 # default cost is 10 milk
         self.cow = ttk.Button(self.c_frame, text='Cow', state='disabled', width=25, command=self.get_cow)
-        self.cow.grid(column=0, row=1, padx=5, pady=5, sticky='E')
+        self.cow.grid(column=0, row=1, padx=5, pady=5, sticky='W')
         self.cow_hovertip = Hovertip(self.cow, f'Get a cow\nCost: {self.cow_cost}\nIncrease milk per second: +0.63/s', hover_delay=10)
         self.use_cow()
         # convert milk to ice cream
         self.convert_b = ttk.Button(self.c_frame, text='Make ice cream', width=25, command=self.convert_milk)
         self.convert_b.grid(column=1, row=0, padx=5, pady=5, sticky='E')
         self.convert_b_hovertip = Hovertip(self.convert_b, 'Uses milk to create ice cream\nCost: 50', hover_delay=10)
+        # TODO: add way to convert more milk at a time
+        # factory, slow generator for ice cream
+        self.factory_num = 0
+        self.factory_cost = 5 # default cost is 5 ice cream
+        self.factory = ttk.Button(self.c_frame, text='Factory', state='disabled', width=25, command=self.get_factory)
+        self.factory.grid(column=0, row=2, padx=5, pady=5, sticky='W')
+        self.factory_hovertip = Hovertip(self.factory, f'Build a regular ice cream factory\nCost: {self.factory_cost}\nIncrease ice cream per second: +0.10/s', hover_delay=10)
+        self.use_factory()
+
         # TODO: add more stuff to buy here!!
 
         # keeping track of what is available to buy
@@ -74,21 +87,32 @@ class MainApplication:
         self.sell_frame = ttk.Frame(self.nb)
         self.nb.add(self.sell_frame, text='Sell')
         # labels and spinboxes - everytime we add a new building, we need to add a new spinbox
+        # in the future, the state of the Spinboxes can be changed if validation is implemented
         ttk.Label(self.sell_frame, text='Cow').grid(column=0, row=0)
         self.sell_cow_num = tk.IntVar()
-        self.sell_cow_sp = ttk.Spinbox(self.sell_frame, from_=0.0, to=self.cow_num, textvariable=self.sell_cow_num)
+        self.sell_cow_sp = ttk.Spinbox(self.sell_frame, from_=0.0, to=self.cow_num, textvariable=self.sell_cow_num, state=['readonly'])
         self.sell_cow_sp.grid(column=1, row=0, padx=5, pady=5)
+        ttk.Label(self.sell_frame, text='Factory').grid(column=0, row=1)
+        self.sell_factory_num = tk.IntVar()
+        self.sell_factory_sp = ttk.Spinbox(self.sell_frame, from_=0.0, to=self.factory_num, textvariable=self.sell_factory_num, state=['readonly'])
+        self.sell_factory_sp.grid(column=1, row=1, padx=5, pady=5)
         # sell button
         self.sell_button = ttk.Button(self.sell_frame, text='Sell', command=self.sell)
-        self.sell_button.grid(column=1, row=1, pady=5) # every time we add a new spinbox, this row number needs to increase
+        self.sell_button.grid(column=1, row=2, pady=5) # every time we add a new spinbox, this row number needs to increase
+
+        # cheat button for testing new features, delete in final version
+        self.cheat_b = ttk.Button(self.parent, text='Cheat increase', command=self.cheat)
+        self.cheat_b.grid()
 
     def update_milk(self, p):
         self.milk.set(round(self.milk.get() + p, 2))
 
     def update_milk_per_second(self):
-        total = round(self.cow_num * 0.63, 2) # this number needs to expand as we add more buildings
-        if total != 0:
+        total = round(self.cow_num * 0.63, 2) # first argument needs to expand as we add more buildings
+        if total > 0:
             self.milk_per_second.set(f'+{total}/s')
+        elif total < 0:
+            self.milk_per_second.set(f'{total}/s')
         else:
             self.milk_per_second.set('')
 
@@ -99,7 +123,21 @@ class MainApplication:
         #       This could be improved by having .showtip() be called here instead. The issue is how do we do that without
         #       the hovertip appearing when the sell Button is invoked?
         self.cow_hovertip.hidetip()
+        self.factory_hovertip.hidetip()
         self.cow_hovertip = Hovertip(self.cow, f'Get a cow\nCost: {self.cow_cost}\nIncrease milk per second: +0.63/s', hover_delay=10)
+        self.factory_hovertip = Hovertip(self.factory, f'Build a regular ice cream factory\nCost: {self.factory_cost}\nIncrease ice cream per second: +0.10/s', hover_delay=10)
+
+    def update_ice_cream(self, p):
+        self.ice_cream.set(round(self.ice_cream.get() + p, 2))
+
+    def update_ice_cream_per_second(self):
+        total = round(self.factory_num * 0.1, 2) # first argument expands as we add more stuff
+        if total > 0:
+            self.ice_cream_per_second.set(f'+{total}/s') 
+        elif total < 0:
+            self.ice_cream_per_second.set(f'{total}/s')
+        else:
+            self.ice_cream_per_second.set('')
 
     def get_cow(self):
         self.update_milk(-self.cow_cost) # milk will be deducted
@@ -117,8 +155,21 @@ class MainApplication:
     
     def convert_milk(self):
         self.update_milk(-50)
-        self.ice_cream.set(self.ice_cream.get() + 1)
+        self.update_ice_cream(1)
 
+    def get_factory(self):
+        self.update_ice_cream(-self.factory_cost) # ice cream will be deducted
+        self.factory_num = self.factory_num + 1
+        self.factory['text'] = f'Factory ({self.factory_num})'
+        self.factory_cost = round(self.factory_cost * 1.2, 2)
+        self.sell_factory_sp['to'] = self.factory_num # update selling spinboxes
+        self.update_ice_cream_per_second()
+        self.update_hovertips()
+        self.factory_hovertip.showtip()
+
+    def use_factory(self):
+        self.update_ice_cream(self.factory_num * 0.1)
+        self.parent.after(1000, self.use_factory)
 
     def available_buy(self):
         # disable the buttons that are too expensive
@@ -133,6 +184,11 @@ class MainApplication:
             self.convert_b.state(['!disabled'])
         else:
             self.convert_b.state(['disabled'])
+        # factory
+        if self.ice_cream.get() >= self.factory_cost:
+            self.factory.state(['!disabled'])
+        else:
+            self.factory.state(['disabled'])
         self.parent.after(10, self.available_buy)
 
     def sell(self):
@@ -145,8 +201,20 @@ class MainApplication:
             self.sell_cow_sp['to'] = self.cow_num
             self.sell_cow_sp.set(0)
             self.update_milk(self.cow_cost) # update number of milk
+        for i in range(self.sell_factory_num.get()):
+            self.factory_cost = round(self.factory_cost / 1.2, 2) # update the cost
+            self.factory_num = self.factory_num - 1 # update number of factories
+            self.factory['text'] = f'Factory ({self.factory_num})'
+            self.sell_factory_sp['to'] = self.factory_num
+            self.sell_factory_sp.set(0)
+            self.update_ice_cream(self.factory_cost) # update number of ice cream
         self.update_milk_per_second()
+        self.update_ice_cream_per_second()
         self.update_hovertips()
+    
+    def cheat(self):
+        self.update_milk(1000000)
+        self.update_ice_cream(100000)
 
 
 if __name__ == '__main__':
