@@ -197,14 +197,20 @@ class MainApplication:
         for i in range(self.sell_cow_num.get()):
             self.cow_cost = round(self.cow_cost / 1.12, 2) # update the cost
             self.cow_num = self.cow_num - 1 # update number of cows
-            self.cow['text'] = f'Cow ({self.cow_num})'
+            if self.cow_num != 0:
+                self.cow['text'] = f'Cow ({self.cow_num})'
+            else:
+                self.cow['text'] = 'Cow'
             self.sell_cow_sp['to'] = self.cow_num
             self.sell_cow_sp.set(0)
             self.update_milk(self.cow_cost) # update number of milk
         for i in range(self.sell_factory_num.get()):
             self.factory_cost = round(self.factory_cost / 1.2, 2) # update the cost
             self.factory_num = self.factory_num - 1 # update number of factories
-            self.factory['text'] = f'Factory ({self.factory_num})'
+            if self.factory_num != 0:
+                self.factory['text'] = f'Factory ({self.factory_num})'
+            else:
+                self.factory['text'] = 'Factory'
             self.sell_factory_sp['to'] = self.factory_num
             self.sell_factory_sp.set(0)
             self.update_ice_cream(self.factory_cost) # update number of ice cream
