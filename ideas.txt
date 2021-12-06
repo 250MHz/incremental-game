@@ -1,19 +1,24 @@
 Ideas:
+- Add ice cream tab to Notebook. Use the ingredients to produce different types of ice cream.
+
+- Add EXP. Finishing certain achievements (e.g. get 1 cow, get 10 cows, get 100 cows) will 
+give EXP which will be shown by a Progressbar which will be in a separate Frame. 
+Reaching certain levels can unlock new bonuses or powerups that the player can buy. Have the
+powerups be in anoter tab in the Notebook.
+
+- Powerup idea using EXP, increase the efficiency of converting ice cream (e.g. change
+from spending 50 milk to 45 milk). Also apply this to make it cheaper to make different
+types of ice cream in the ice cream tab.
+
+- Add efficiency system. Use EXP to increase efficiency of buildings.
+
+- Colors for the +#/sec, e.g. green if it's regular, orange or yellow for special bonuses, 
+or red if we implement some feature that will decrease the quantity per second.
+
+- Add a time + season system. Efficiency of plantation, field, and processes can slow
+down during winter (or even turn off), and be more efficient in the spring or summer.
+
 - Create a Text thing where we can write logs for stuff that happens.
-Would be cool for a more complicate game with events. E.g. maybe have
-random events like generators breaking down, or natural disasters hampering
-production.
-
-- Maybe put all statements that use .after() in one function.
-Or maybe use .after() to call one funnction, and that one function does
-all the increasing. It looks weird if multiple labels are updating
-but they all update at different times.
-
-- We can have colors for the +#/sec, e.g. green if it's regular, orange or
-yellow for special bonuses, or red if we implement some feature that will
-decrease the quantity per second.
-
-- Thinking of adding EXP. Finishing certain achievements (e.g. build 1
-standard generator, build 10 standard generators, build 100 standard
-generators, etc.) will give EXP which will be shown by a Progressbar which will be in a separate Frame. Reaching certain levels can unlock new bonuses or
-powerups that the player can buy.
+Would be cool for a more complicated game with events. E.g. wild events happens that decreases
+the production of chocolate for a while or generators break down and need to be fixed
+(decrease efficiency of generators for a while). Also log changes in the time + season.
