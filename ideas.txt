@@ -1,6 +1,4 @@
 Ideas:
-- Add ice cream tab to Notebook. Use the ingredients to produce different types of ice cream.
-
 - Add EXP. Finishing certain achievements (e.g. get 1 cow, get 10 cows, get 100 cows) will 
 give EXP which will be shown by a Progressbar which will be in a separate Frame. 
 Reaching certain levels can unlock new bonuses or powerups that the player can buy. Have the
