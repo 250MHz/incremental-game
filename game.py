@@ -26,6 +26,7 @@ class MainApplication:
         self.vanilla_i_c_text_visible = False
         self.strawberry_i_c_text_visible = False
         self.chocolate_i_c_text_visible = False
+        self.neapolitan_i_c_text_visible = False
 
         # resources frame
         self.r_frame = ttk.Frame(self.parent)
@@ -53,6 +54,10 @@ class MainApplication:
         self.chocolate_i_c = tk.DoubleVar()
         # chocolate ice cream per second
         self.chocolate_i_c_per_second = tk.DoubleVar()
+        # neapolitan ice cream
+        self.neapolitan_i_c = tk.DoubleVar()
+        # neapolitan ice cream per second
+        self.neapolitan_i_c_per_second = tk.StringVar()
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
         # bonuses / combos
         # TODO: add new labels for combos or bonuses
@@ -98,42 +103,50 @@ class MainApplication:
         self.cow_num = 0
         self.cow_cost = 10 # default cost is 10 milk
         self.cow = ttk.Button(self.c_frame, text='Cow', state='disabled', width=25, command=self.get_cow)
-        self.cow.grid(column=0, row=1, padx=5, pady=5, sticky='W')
+        self.cow.grid(column=0, row=1, padx=5, pady=5, sticky='WE')
         self.cow.grid_remove() # hide the button, show it when the player reaches 3 milk for the first time
         self.cow_hovertip = Hovertip(self.cow, f'Get a cow\nCost:\n{self.cow_cost} milk\nEffects:\nIncrease milk per second: +0.63/s', hover_delay=10)
         # convert milk to ice cream
         self.convert_cost = 50 # default cost is 50 milk
         self.convert_b = ttk.Button(self.c_frame, text='Make ice cream', width=25, command=self.convert_milk)
-        self.convert_b.grid(column=1, row=0, padx=5, pady=5, sticky='E')
+        self.convert_b.grid(column=3, row=0, columnspan=3, padx=5, pady=5, sticky='WE')
         self.convert_b_hovertip = Hovertip(self.convert_b, f'Uses milk to create plain ice cream\nCost:\n{self.convert_cost} milk', hover_delay=10)
         # TODO: add way to convert more milk at a time
         # factory, automatic converter for ice cream
         self.factory_num = 0
         self.factory_cost = 5 # default cost is 5 ice cream
         self.factory_conversion_cost = self.convert_cost / 10
-        self.factory = ttk.Button(self.c_frame, text='Factory', state='disabled', width=25, command=self.get_factory)
-        self.factory.grid(column=1, row=1, padx=5, pady=5, sticky='E')
+        self.factory = ttk.Button(self.c_frame, text='Factory', state='disabled', command=self.get_factory)
+        self.factory.grid(column=3, row=1, padx=(5, 0), pady=5, sticky='WE')
         self.factory.grid_remove() # hide the button, show it after the player has 1 ice cream for the first time
         self.factory_hovertip = Hovertip(self.factory, f"Converts milk to ice cream. Factories stop running\nif you don't have enough milk and continue\nrunning when you have enough.\nCost:\n{self.factory_cost} ice cream\nEffects:\nMilk conversion: -{self.factory_conversion_cost}/s\nIce cream conversion: +0.1/s", hover_delay=10)
+        # buttons for managing number of activated factories
+        self.factory_activated_num = 0
+        self.factory_activated_up_b = ttk.Button(self.c_frame, text='+', state='disabled', width=1, command=lambda: self.factory_activated_increase(1))
+        self.factory_activated_up_b.grid(column=4, row=1, sticky='WE')
+        self.factory_activated_up_b.grid_remove() # hide and show at same time a factory is available
+        self.factory_activated_down_b = ttk.Button(self.c_frame, text='-', state='disabled', width=1, command=lambda: self.factory_activated_increase(-1))
+        self.factory_activated_down_b.grid(column=5, row=1, padx=(0, 5), sticky='WE')
+        self.factory_activated_down_b.grid_remove() # hide and show at same time a factory is available
         # vanilla plantation
         self.vanilla_plantation_num = 0
         self.vanilla_plantation_cost = 10 # default cost is 10 ice cream
         self.vanilla_plantation = ttk.Button(self.c_frame, text='Vanilla Plantation', state='disabled', width=25, command=self.get_vanilla_plantation)
-        self.vanilla_plantation.grid(column=0, row=2, padx=5, pady=5, sticky='W')
+        self.vanilla_plantation.grid(column=0, row=2, padx=5, pady=5, sticky='WE')
         self.vanilla_plantation.grid_remove() # hide the button, show it alongside the factory
         self.vanilla_plantation_hovertip = Hovertip(self.vanilla_plantation, f'Plantation for growing Vanilla planifolia\nCost:\n{self.vanilla_plantation_cost} ice cream\nEffects:\nIncrease vanilla (spice) per second: +0.26/s', hover_delay=10)
         # strawberry field
         self.strawberry_field_num = 0
         self.strawberry_field_cost = 10 # default cost is 10 ice cream
         self.strawberry_field = ttk.Button(self.c_frame, text='Strawberry Field', state='disabled', width=25, command=self.get_strawberry_field)
-        self.strawberry_field.grid(column=1, row=2, padx=5, pady=5, sticky='E')
+        self.strawberry_field.grid(column=3, row=2, columnspan=3, padx=5, pady=5, sticky='WE')
         self.strawberry_field.grid_remove() # hide the button, show it after a vanilla plantation has been made
         self.strawberry_field_hovertip = Hovertip(self.strawberry_field, f'Produces strawberries\nCost:\n{self.strawberry_field_cost} ice cream\nEffects:\nIncrease strawberry (fruit) per second: +0.35/s', hover_delay=10)
         # chocolate processor
         self.chocolate_processor_num = 0
         self.chocolate_processor_cost = 10 # default cost is 10 ice cream
         self.chocolate_processor = ttk.Button(self.c_frame, text='Chocolate Processor', state='disabled', width=25, command=self.get_chocolate_processor)
-        self.chocolate_processor.grid(column=0, row=3, padx=5, pady=5, sticky='E')
+        self.chocolate_processor.grid(column=0, row=3, padx=5, pady=5, sticky='WE')
         self.chocolate_processor.grid_remove() # hide the button, show it after a vanilla plantation has been made
         self.chocolate_processor_hovertip = Hovertip(self.chocolate_processor, f'Build facilities to order and process cocoa beans\nCost:\n{self.chocolate_processor_cost} ice cream\nEffects:\nIncrease chocolate (food) per second: +0.15/s', hover_delay=10)
         # TODO: add more stuff to buy here!!
@@ -165,6 +178,13 @@ class MainApplication:
         self.chocolate_i_c_b = ttk.Button(self.i_c_frame, text='Chocolate Ice Cream', state='disabled', width=25, command=self.get_chocolate_i_c)
         self.chocolate_i_c_b.grid(column=0, row=3, padx=5, pady=5, sticky='W')
         self.chocolate_i_c_b_hovertip = Hovertip(self.chocolate_i_c_b, f'Produce chocolate ice cream\nCost:\n{self.chocolate_i_c_cost} ice cream\n{self.chocolate_i_c_food_cost} chocolate (food)', hover_delay=10)
+        # neapolitan ice cream button
+        self.neapolitan_i_c_vanilla_cost = 3 # default costs 3 vanilla ice cream and
+        self.neapolitan_i_c_strawberry_cost = 3 # 3 strawberry ice cream and
+        self.neapolitan_i_c_chocolate_cost = 3 # 3 chocolate ice cream
+        self.neapolitan_i_c_b = ttk.Button(self.i_c_frame, text='Neapolitan Ice Cream', state='disabled', width=25, command=self.get_neapolitan_i_c)
+        self.neapolitan_i_c_b.grid(column=0, row=4, padx=5, pady=5, sticky='W')
+        self.neapolitan_i_c_b_hovertip = Hovertip(self.neapolitan_i_c_b, f'Produce neapolitan ice cream\nCost\n{self.neapolitan_i_c_vanilla_cost} vanilla ice cream\n{self.neapolitan_i_c_strawberry_cost} strawberry ice cream\n{self.neapolitan_i_c_chocolate_cost} chocolate ice cream', hover_delay=10)
 
         # keep selling spinboxes hidden until building is acquired for the first time
         self.sell_tab_visible = False
@@ -210,11 +230,12 @@ class MainApplication:
             self.milk_per_second_lb.grid(column=2, row=1, sticky='W')
             self.milk_text_visible = True
         if not self.cow_button_visible and self.milk.get() >= 3:
+            # make cow button visible
             self.cow.grid()
             self.cow_button_visible = True
 
     def update_milk_per_second(self):
-        total = round(self.cow_num * 0.63 + self.factory_num * -self.factory_conversion_cost, 2) # first argument needs to expand as we add more buildings
+        total = round(self.cow_num * 0.63 + self.factory_activated_num * -self.factory_conversion_cost, 2) # first argument needs to expand as we add more buildings
         if total > 0:
             self.milk_per_second.set(f'+{total}/s')
         elif total < 0:
@@ -235,11 +256,13 @@ class MainApplication:
             self.ice_cream_text_visible = True
         if not self.factory_button_visible and self.ice_cream.get() >= 1:
             self.factory.grid()
+            self.factory_activated_up_b.grid() # goes along with factory
+            self.factory_activated_down_b.grid() # goes along with factory
             self.vanilla_plantation.grid() # available at the same time as the factory
             self.factory_button_visible = True
 
     def update_ice_cream_per_second(self):
-        total = round(self.factory_num * 0.1, 2) # first argument expands as we add more stuff
+        total = round(self.factory_activated_num * 0.1, 2) # first argument expands as we add more stuff
         if total > 0:
             self.ice_cream_per_second.set(f'+{total}/s') 
         elif total < 0:
@@ -276,6 +299,24 @@ class MainApplication:
             self.chocolate_i_c_label = ttk.Label(self.r_frame, textvariable=self.chocolate_i_c)
             self.chocolate_i_c_label.grid(column=1, row=5, sticky='W')
             self.chocolate_i_c_text_visible = True
+
+    def update_neapolitan_i_c(self, p):
+        self.neapolitan_i_c.set(round(self.neapolitan_i_c.get() + p, 2))
+        if not self.neapolitan_i_c_text_visible:
+            # neapolitan ice cream text (using Text instead of Label b/c can't have multiple colors in one Label)
+            # consider converting other Labels to Text in the future
+            text = tk.Text(self.r_frame, height=1)
+            text.tag_configure('neapolitan_s', foreground='#FC5A8D')
+            text.tag_configure('neapolitan_v', foreground='#D1BEA8')
+            text.tag_configure('neapolitan_c', foreground='#7B3F00')
+            text.insert('end', 'Nea', 'neapolitan_s')
+            text.insert('end', 'poli', 'neapolitan_v')
+            text.insert('end', 'tan', 'neapolitan_c')
+            text['state'] = 'disabled' # prevent editing of text
+            text.grid(column=0, row=6, sticky='W')
+            self.neapolitan_i_c_label = ttk.Label(self.r_frame, textvariable=self.neapolitan_i_c)
+            self.neapolitan_i_c_label.grid(column=1, row=6, sticky='W')
+            self.neapolitan_i_c_text_visible = True
 
     def update_vanilla_spice(self, p):
         self.vanilla_spice.set(round(self.vanilla_spice.get() + p, 2))
@@ -372,9 +413,11 @@ class MainApplication:
         self.vanilla_i_c_b_hovertip.hidetip()
         self.strawberry_i_c_b_hovertip.hidetip()
         self.chocolate_i_c_b_hovertip.hidetip()
+        self.neapolitan_i_c_b_hovertip.hidetip()
         self.vanilla_i_c_b_hovertip = Hovertip(self.vanilla_i_c_b, f'Produce vanilla ice cream\nCost:\n{self.vanilla_i_c_cost} ice cream\n{self.vanilla_i_c_spice_cost} vanilla (spice)', hover_delay=10)
         self.strawberry_i_c_b_hovertip = Hovertip(self.strawberry_i_c_b, f'Produce strawberry ice cream\nCost:\n{self.strawberry_i_c_cost} ice cream\n{self.strawberry_i_c_fruit_cost} strawberry (fruit)', hover_delay=10)
         self.chocolate_i_c_b_hovertip = Hovertip(self.chocolate_i_c_b, f'Produce chocolate ice cream\nCost:\n{self.chocolate_i_c_cost} ice cream\n{self.chocolate_i_c_food_cost} chocolate (food)', hover_delay=10)
+        self.neapolitan_i_c_b_hovertip = Hovertip(self.neapolitan_i_c_b, f'Produce neapolitan ice cream\nCost\n{self.neapolitan_i_c_vanilla_cost} vanilla ice cream\n{self.neapolitan_i_c_strawberry_cost} strawberry ice cream\n{self.neapolitan_i_c_chocolate_cost} chocolate ice cream', hover_delay=10)
 
     # building / c_frame related functions
 
@@ -396,7 +439,8 @@ class MainApplication:
     def get_factory(self):
         self.update_ice_cream(-self.factory_cost) # ice cream will be deducted
         self.factory_num = self.factory_num + 1
-        self.factory['text'] = f'Factory ({self.factory_num})'
+        self.factory_activated_increase(1)
+        self.factory['text'] = f'Factory ({self.factory_activated_num}/{self.factory_num})'
         self.factory_cost = round(self.factory_cost * 1.2, 2)
         self.available_sell()
         self.sell_factory_sp['to'] = self.factory_num # update selling spinboxes
@@ -404,6 +448,12 @@ class MainApplication:
         self.update_ice_cream_per_second()
         self.update_hovertips()
         self.factory_hovertip.showtip()
+
+    def factory_activated_increase(self, i):
+        self.factory_activated_num = self.factory_activated_num + i
+        self.factory['text'] = f'Factory ({self.factory_activated_num}/{self.factory_num})'
+        self.update_milk_per_second()
+        self.update_ice_cream_per_second()
 
     def get_vanilla_plantation(self):
         self.update_ice_cream(-self.vanilla_plantation_cost) # ice cream will be deducted
@@ -441,9 +491,9 @@ class MainApplication:
     def use_buildings(self):
         if self.cow_num > 0:
             self.update_milk(self.cow_num * 0.63)
-        if (self.factory_num > 0) and (self.milk.get() - self.factory_conversion_cost >= 0):
-            self.update_ice_cream(self.factory_num * 0.1)
-            self.update_milk(self.factory_num * -self.factory_conversion_cost)
+        if (self.factory_activated_num > 0) and (self.milk.get() >= self.factory_activated_num * self.factory_conversion_cost):
+            self.update_milk(self.factory_activated_num * -self.factory_conversion_cost)
+            self.update_ice_cream(self.factory_activated_num * 0.1)
         if self.vanilla_plantation_num > 0:
             self.update_vanilla_spice(self.vanilla_plantation_num * 0.26)
         if self.strawberry_field_num > 0:
@@ -468,6 +518,12 @@ class MainApplication:
         self.update_ice_cream(-self.chocolate_i_c_cost) # deduct ice cream
         self.update_chocolate_food(-self.chocolate_i_c_food_cost) # deduct chocolate (food)
         self.update_chocolate_i_c(1)
+    
+    def get_neapolitan_i_c(self):
+        self.update_vanilla_i_c(-self.neapolitan_i_c_vanilla_cost) # deduct vanilla ice cream
+        self.update_strawberry_i_c(-self.neapolitan_i_c_strawberry_cost) # deduct strawberry ice cream
+        self.update_chocolate_i_c(-self.neapolitan_i_c_chocolate_cost) # deduct chocolate ice cream
+        self.update_neapolitan_i_c(1)
 
     # availability stuff
 
@@ -490,6 +546,18 @@ class MainApplication:
             self.factory.state(['!disabled'])
         else:
             self.factory.state(['disabled'])
+        if self.factory_num > 0 and self.factory_activated_num < self.factory_num:
+            # maximum number of factories activated
+            self.factory_activated_up_b.state(['!disabled'])
+        elif self.factory_num > 0 and self.factory_activated_num >= self.factory_num:
+            # maximum number of factories activated not reached yet
+            self.factory_activated_up_b.state(['disabled'])
+        if self.factory_num > 0 and self.factory_activated_num > 0:
+            # more than 0 activated factories
+            self.factory_activated_down_b.state(['!disabled'])
+        elif self.factory_num > 0 and self.factory_activated_num <= 0:
+            # 0 activated factories
+            self.factory_activated_down_b.state(['disabled'])
         # vanilla plantation
         if self.ice_cream.get() >= self.vanilla_plantation_cost:
             self.vanilla_plantation.state(['!disabled'])
@@ -522,6 +590,12 @@ class MainApplication:
             self.chocolate_i_c_b.state(['!disabled'])
         else:
             self.chocolate_i_c_b.state(['disabled'])
+        # neapolitan ice cream
+        if (self.vanilla_i_c.get() >= self.neapolitan_i_c_vanilla_cost and self.strawberry_i_c.get() >= self.neapolitan_i_c_strawberry_cost and
+                self.chocolate_i_c.get() >= self.neapolitan_i_c_chocolate_cost):
+            self.neapolitan_i_c_b.state(['!disabled'])
+        else:
+            self.neapolitan_i_c_b.state(['disabled'])
     
         self.parent.after(10, self.available_buy)
 
@@ -577,8 +651,10 @@ class MainApplication:
         for i in range(self.sell_factory_num.get()):
             self.factory_cost = round(self.factory_cost / 1.2, 2) # update the cost
             self.factory_num = self.factory_num - 1 # update number of factories
+            if self.factory_activated_num > self.factory_num:
+                self.factory_activated_num = self.factory_activated_num - 1
             if self.factory_num != 0:
-                self.factory['text'] = f'Factory ({self.factory_num})'
+                self.factory['text'] = f'Factory ({self.factory_activated_num}/{self.factory_num})'
             else:
                 self.factory['text'] = 'Factory'
             self.sell_factory_sp['to'] = self.factory_num
@@ -622,7 +698,7 @@ class MainApplication:
         self.update_hovertips()
     
     def cheat(self):
-        i = 100000
+        i = 100
         self.update_milk(i)
         self.update_ice_cream(i)
         self.update_vanilla_spice(i)
