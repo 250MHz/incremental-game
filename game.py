@@ -107,7 +107,7 @@ class MainApplication:
         self.cow.grid_remove() # hide the button, show it when the player reaches 3 milk for the first time
         self.cow_hovertip = Hovertip(self.cow, f'Get a cow\nCost:\n{self.cow_cost} milk\nEffects:\nIncrease milk per second: +0.63/s', hover_delay=10)
         # convert milk to ice cream
-        self.convert_cost = 50 # default cost is 50 milk
+        self.convert_cost = 25 # default cost is 25 milk
         self.convert_b = ttk.Button(self.c_frame, text='Make ice cream', width=25, command=self.convert_milk)
         self.convert_b.grid(column=3, row=0, columnspan=3, padx=5, pady=5, sticky='WE')
         self.convert_b_hovertip = Hovertip(self.convert_b, f'Uses milk to create plain ice cream\nCost:\n{self.convert_cost} milk', hover_delay=10)
@@ -134,14 +134,14 @@ class MainApplication:
         self.vanilla_plantation = ttk.Button(self.c_frame, text='Vanilla Plantation', state='disabled', width=25, command=self.get_vanilla_plantation)
         self.vanilla_plantation.grid(column=0, row=2, padx=5, pady=5, sticky='WE')
         self.vanilla_plantation.grid_remove() # hide the button, show it alongside the factory
-        self.vanilla_plantation_hovertip = Hovertip(self.vanilla_plantation, f'Plantation for growing Vanilla planifolia\nCost:\n{self.vanilla_plantation_cost} ice cream\nEffects:\nIncrease vanilla (spice) per second: +0.26/s', hover_delay=10)
+        self.vanilla_plantation_hovertip = Hovertip(self.vanilla_plantation, f'Plantation for growing Vanilla planifolia\nCost:\n{self.vanilla_plantation_cost} ice cream\nEffects:\nIncrease vanilla (spice) per second: +0.15/s', hover_delay=10)
         # strawberry field
         self.strawberry_field_num = 0
         self.strawberry_field_cost = 10 # default cost is 10 ice cream
         self.strawberry_field = ttk.Button(self.c_frame, text='Strawberry Field', state='disabled', width=25, command=self.get_strawberry_field)
         self.strawberry_field.grid(column=3, row=2, columnspan=3, padx=5, pady=5, sticky='WE')
         self.strawberry_field.grid_remove() # hide the button, show it after a vanilla plantation has been made
-        self.strawberry_field_hovertip = Hovertip(self.strawberry_field, f'Produces strawberries\nCost:\n{self.strawberry_field_cost} ice cream\nEffects:\nIncrease strawberry (fruit) per second: +0.35/s', hover_delay=10)
+        self.strawberry_field_hovertip = Hovertip(self.strawberry_field, f'Produces strawberries\nCost:\n{self.strawberry_field_cost} ice cream\nEffects:\nIncrease strawberry (fruit) per second: +0.15/s', hover_delay=10)
         # chocolate processor
         self.chocolate_processor_num = 0
         self.chocolate_processor_cost = 10 # default cost is 10 ice cream
@@ -303,17 +303,9 @@ class MainApplication:
     def update_neapolitan_i_c(self, p):
         self.neapolitan_i_c.set(round(self.neapolitan_i_c.get() + p, 2))
         if not self.neapolitan_i_c_text_visible:
-            # neapolitan ice cream text (using Text instead of Label b/c can't have multiple colors in one Label)
-            # consider converting other Labels to Text in the future
-            text = tk.Text(self.r_frame, height=1)
-            text.tag_configure('neapolitan_s', foreground='#FC5A8D')
-            text.tag_configure('neapolitan_v', foreground='#D1BEA8')
-            text.tag_configure('neapolitan_c', foreground='#7B3F00')
-            text.insert('end', 'Nea', 'neapolitan_s')
-            text.insert('end', 'poli', 'neapolitan_v')
-            text.insert('end', 'tan', 'neapolitan_c')
-            text['state'] = 'disabled' # prevent editing of text
-            text.grid(column=0, row=6, sticky='W')
+            # neapolitan ice cream label
+            self.style.configure('Neapolitan.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#808080')
+            ttk.Label(self.r_frame, text='    Neapolitan', style='Neapolitan.TLabel').grid(column=0, row=6, sticky='W')
             self.neapolitan_i_c_label = ttk.Label(self.r_frame, textvariable=self.neapolitan_i_c)
             self.neapolitan_i_c_label.grid(column=1, row=6, sticky='W')
             self.neapolitan_i_c_text_visible = True
@@ -340,7 +332,7 @@ class MainApplication:
             self.i_c_tab_visible = True
 
     def update_vanilla_spice_per_second(self):
-        total = round(self.vanilla_plantation_num * 0.26, 2) # first argument expands as we add more stuff
+        total = round(self.vanilla_plantation_num * 0.15, 2) # first argument expands as we add more stuff
         if total > 0:
             self.vanilla_spice_per_second.set(f'+{total}/s')
         elif total < 0:
@@ -361,7 +353,7 @@ class MainApplication:
             self.strawberry_fruit_text_visible = True
 
     def update_strawberry_fruit_per_second(self):
-        total = round(self.strawberry_field_num * 0.35, 2) # first argument expands as we add more stuff
+        total = round(self.strawberry_field_num * 0.15, 2) # first argument expands as we add more stuff
         if total > 0:
             self.strawberry_fruit_per_second.set(f'+{total}/s')
         elif total < 0:
@@ -406,8 +398,8 @@ class MainApplication:
         self.chocolate_processor_hovertip.hidetip()
         self.cow_hovertip = Hovertip(self.cow, f'Get a cow\nCost:\n{self.cow_cost} milk\nEffects:\nIncrease milk per second: +0.63/s', hover_delay=10)
         self.factory_hovertip = Hovertip(self.factory, f"Converts milk to ice cream. Factories stop running\nif you don't have enough milk and continue\nrunning when you have enough.\nCost:\n{self.factory_cost} ice cream\nEffects:\nMilk conversion: -{self.factory_conversion_cost}/s\nIce cream conversion: +0.1/s", hover_delay=10)
-        self.vanilla_plantation_hovertip = Hovertip(self.vanilla_plantation, f'Plantation for growing Vanilla planifolia\nCost:\n{self.vanilla_plantation_cost} ice cream\nEffects:\nIncrease vanilla (spice) per second: +0.26/s', hover_delay=10)
-        self.strawberry_field_hovertip = Hovertip(self.strawberry_field, f'Produces strawberries\nCost:\n{self.strawberry_field_cost} ice cream\nEffects:\nIncrease strawberry (fruit) per second: +0.35/s', hover_delay=10)
+        self.vanilla_plantation_hovertip = Hovertip(self.vanilla_plantation, f'Plantation for growing Vanilla planifolia\nCost:\n{self.vanilla_plantation_cost} ice cream\nEffects:\nIncrease vanilla (spice) per second: +0.15/s', hover_delay=10)
+        self.strawberry_field_hovertip = Hovertip(self.strawberry_field, f'Produces strawberries\nCost:\n{self.strawberry_field_cost} ice cream\nEffects:\nIncrease strawberry (fruit) per second: +0.15/s', hover_delay=10)
         self.chocolate_processor_hovertip = Hovertip(self.chocolate_processor, f'Build facilities to order and process cocoa beans\nCost:\n{self.chocolate_processor_cost} ice cream\nEffects:\nIncrease chocolate (food) per second: +0.15/s', hover_delay=10)
         # i_c_frame hovertips
         self.vanilla_i_c_b_hovertip.hidetip()
@@ -495,9 +487,9 @@ class MainApplication:
             self.update_milk(self.factory_activated_num * -self.factory_conversion_cost)
             self.update_ice_cream(self.factory_activated_num * 0.1)
         if self.vanilla_plantation_num > 0:
-            self.update_vanilla_spice(self.vanilla_plantation_num * 0.26)
+            self.update_vanilla_spice(self.vanilla_plantation_num * 0.15)
         if self.strawberry_field_num > 0:
-            self.update_strawberry_fruit(self.strawberry_field_num * 0.35)
+            self.update_strawberry_fruit(self.strawberry_field_num * 0.15)
         if self.chocolate_processor_num > 0:
             self.update_chocolate_food(self.chocolate_processor_num * 0.15)
         self.parent.after(1000, self.use_buildings)
