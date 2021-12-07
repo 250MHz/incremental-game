@@ -11,11 +11,11 @@ from tooltip import Hovertip
 
 class Resource:
 
-    def __init__(self, r_frame, row, name, style='TLabel'):
+    def __init__(self, frame, row, name, style='TLabel'):
         self.resource = tk.DoubleVar()
         self.per_second = tk.StringVar()
         self.text_visible = False # True if the label is visible
-        self.r_frame = r_frame
+        self.frame = frame
         self.row = row
         self.name = name
         self.style = style
@@ -24,11 +24,11 @@ class Resource:
         self.resource.set(round(self.resource.get() + p, 2))
         if not self.text_visible:
             # unchanging label, shows the name of the resource
-            ttk.Label(self.r_frame, text=self.name, style=self.style).grid(column=0, row=self.row, sticky='W')
+            ttk.Label(self.frame, text=self.name, style=self.style).grid(column=0, row=self.row, sticky='W')
             # changing label, shows the amount of the resource
-            ttk.Label(self.r_frame, textvariable=self.resource,).grid(column=1, row=self.row, sticky='W')
+            ttk.Label(self.frame, textvariable=self.resource).grid(column=1, row=self.row, sticky='W')
             # changing label, shows the resource per second
-            ttk.Label(self.r_frame, textvariable=self.per_second).grid(column=2, row=self.row, sticky='W')
+            ttk.Label(self.frame, textvariable=self.per_second).grid(column=2, row=self.row, sticky='W')
             self.text_visible = True # label should now be visible
 
     def update_per_second(self, p):
@@ -57,17 +57,17 @@ class ResourceFrame(ttk.Frame):
         ttk.Label(self, text='Resources', width=45).grid(column=0, row=0, columnspan=3, sticky='W')
         # .grid() for resources are called when the resources increment for the very first time
         # milk
-        self.milk = Resource(r_frame=self, row=1, name='Milk')
+        self.milk = Resource(frame=self, row=1, name='Milk')
         # ice cream
-        self.ice_cream = Resource(r_frame=self, row=2, name='Ice Cream')
+        self.ice_cream = Resource(frame=self, row=2, name='Ice Cream')
         # vanilla ice cream
-        self.vanilla_i_c = Resource(r_frame=self, row=3, name='    Vanilla', style='Vanilla.TLabel')
+        self.vanilla_i_c = Resource(frame=self, row=3, name='    Vanilla', style='Vanilla.TLabel')
         # strawberry ice cream
-        self.strawberry_i_c = Resource(r_frame=self, row=4, name='    Strawberry', style='Strawberry.TLabel')
+        self.strawberry_i_c = Resource(frame=self, row=4, name='    Strawberry', style='Strawberry.TLabel')
         # chocolate ice cream
-        self.chocolate_i_c = Resource(r_frame=self, row=5, name='    Chocolate', style='Chocolate.TLabel')
+        self.chocolate_i_c = Resource(frame=self, row=5, name='    Chocolate', style='Chocolate.TLabel')
         # neapolitan ice cream
-        self.neapolitan_i_c = Resource(r_frame=self, row=6, name='    Neapolitan', style='Neapolitan.TLabel')
+        self.neapolitan_i_c = Resource(frame=self, row=6, name='    Neapolitan', style='Neapolitan.TLabel')
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
         # bonuses / combos
         # TODO: add new labels for combos or bonuses
@@ -174,18 +174,21 @@ class ResourceFrame(ttk.Frame):
 
 class IngredientFrame(ttk.Frame):
 
-    def __init__(self, parent, main):
+    def __init__(self, parent):
         ttk.Frame.__init__(self, parent)
-        # self.main = main
-        # self.c_frame = main.c_frame
 
+        # ingredients label !!!!(IMPORTANT: make the game so that vanilla is always the first ingredient obtained)!!!!
+        self.ingredient_lb = ttk.Label(self, text='Ingredients', width=45)
+        self.ingredient_lb.grid(column=0, row=0, columnspan=3, sticky='W')
+        self.ingredient_lb.grid_remove() # show this after Vanilla (spice) is first obtained
+        
         # .grid() for ingredients are called when ingredients increment for the very first time
         # vanilla (spice)
-        self.vanilla_spice = Resource()
+        self.vanilla_spice = Resource(frame=self, row=1, name='Vanilla (spice)')
         # strawberry (fruit)
-        self.strawberry_fruit = Resource()
+        self.strawberry_fruit = Resource(frame=self, row=2, name='Strawberry (fruit)')
         # chocolate (food)
-        self.chocolate_food = Resource()
+        self.chocolate_food = Resource(frame=self, row=3, name='Chocolate (food)')
 
     # def update_vanilla_spice(self, p):
     #     self.vanilla_spice.set(round(self.vanilla_spice.get() + p, 2))
@@ -273,11 +276,13 @@ class Building:
         self.name = name
         self.col = col
         self.row = row
-        self.button = ttk.Button(self.parent, text=self.name, state='disabled', width=25, command=self.get)
+        self.button = ttk.Button(self.parent, text=self.name, state='disabled', width=25, command=self.buy)
         self.button.grid(column=self.col, row=self.row, padx=5, pady=5, sticky='WE')
         self.button.grid_remove() # hide the button until certain requirements are met
 
-    def get(self):
+    # need to implement buy() modifying selling stuff
+
+    def buy(self):
         self.resource.update(-self.cost) # deduct cost from Resource
         self.num = self.num + 1 # increase the number of this Building
         self.button['text'] = f'{self.name} ({self.num})' # update quantity on this Building's button
