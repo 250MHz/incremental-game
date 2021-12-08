@@ -425,7 +425,7 @@ class MainApplication:
         self.cow_hovertip.showtip()
     
     def convert_milk(self):
-        self.update_milk(-50)
+        self.update_milk(-25)
         self.update_ice_cream(1)
 
     def get_factory(self):
@@ -529,7 +529,7 @@ class MainApplication:
         else:
             self.cow.state(['disabled'])
         # convert milk
-        if self.milk.get() >= 50:
+        if self.milk.get() >= 25:
             self.convert_b.state(['!disabled'])
         else:
             self.convert_b.state(['disabled'])
