@@ -1,14 +1,20 @@
 Ideas:
+- Add efficiency system. E.g., have a Building that improves the +resource/sec of a certain
+resource by 20%.
+
+- Add more Ice Cream flavors, make more Buildings and Resources and Ingredients in order to
+make these new flavors.
+
 - Add EXP. Finishing certain achievements (e.g. get 1 cow, get 10 cows, get 100 cows) will 
 give EXP which will be shown by a Progressbar which will be in a separate Frame. 
 Reaching certain levels can unlock new bonuses or powerups that the player can buy. Have the
 powerups be in anoter tab in the Notebook.
 
-- Powerup idea using EXP, increase the efficiency of converting ice cream (e.g. change
-from spending 50 milk to 45 milk). Also apply this to make it cheaper to make different
-types of ice cream in the ice cream tab.
+- EXP unlocks this powerup: every 1 minutes, 10% chance to 3x all production +/sec for
+30 secs. Use Resources to upgrade the % and the 3x rate.
 
-- Add efficiency system. Use EXP to increase efficiency of buildings.
+- EXP unlocks this powerup: every time a resource is added, 10% chance of doubling the
+value. Use Resources to upgrade this percentage chance.
 
 - Colors for the +#/sec, e.g. green if it's regular, orange or yellow for special bonuses, 
 or red if we implement some feature that will decrease the quantity per second.
