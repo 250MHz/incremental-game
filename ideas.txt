@@ -2,6 +2,10 @@ Ideas:
 - Add efficiency system. E.g., have a Building that improves the +resource/sec of a certain
 resource by 20%.
 
+- Add a Resource cap / Ingredient cap, and have say a Building that increases Milk storage,
+another Building that increase Ice Cream storage, another that increases all ingredient
+storage, etc.
+
 - Add more Ice Cream flavors, make more Buildings and Resources and Ingredients in order to
 make these new flavors.
 
@@ -15,6 +19,9 @@ powerups be in anoter tab in the Notebook.
 
 - EXP unlocks this powerup: every time a resource is added, 10% chance of doubling the
 value. Use Resources to upgrade this percentage chance.
+
+- Hovertip for Labels in ResourceFrame and IngredientFrame to show where the +/sec are coming
+from along with bonuses.
 
 - Colors for the +#/sec, e.g. green if it's regular, orange or yellow for special bonuses, 
 or red if we implement some feature that will decrease the quantity per second.
