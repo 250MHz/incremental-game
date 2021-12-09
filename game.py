@@ -16,7 +16,7 @@ class Resource:
     self.per_second counds the per/second increase of the resource
     """
 
-    def __init__(self, frame, row, name, style='TLabel'):
+    def __init__(self, frame, row, name, max_num, style='TLabel'):
         self.resource = tk.DoubleVar()
         self.per_second = tk.StringVar()
         self.text_visible = False # True if the label is visible
@@ -25,16 +25,24 @@ class Resource:
         self.name = name
         self.style = style
         self.total = 0.0 # used in update_per_second
+        self.max_num_var = tk.StringVar() # the maximum value that self.resource can be
+        self.max_num = 0
+        self.update_max_num(max_num)
 
     def update(self, p):
-        self.resource.set(round(self.resource.get() + p, 2))
+        if round(self.resource.get() + p, 2) >= self.max_num:
+            self.resource.set(self.max_num)
+        else:
+            self.resource.set(round(self.resource.get() + p, 2))
         if not self.text_visible:
             # unchanging label, shows the name of the resource
             ttk.Label(self.frame, text=self.name, style=self.style).grid(column=0, row=self.row, sticky='W')
             # changing label, shows the amount of the resource
-            ttk.Label(self.frame, textvariable=self.resource).grid(column=1, row=self.row, sticky='W')
+            ttk.Label(self.frame, textvariable=self.resource).grid(column=1, row=self.row, padx=(10, 0), sticky='E')
+            # changing label, shows the max number of the resource
+            ttk.Label(self.frame, textvariable=self.max_num_var, foreground='#7d7d7d').grid(column=2, row=self.row, sticky='W')
             # changing label, shows the resource per second
-            ttk.Label(self.frame, textvariable=self.per_second).grid(column=2, row=self.row, sticky='W')
+            ttk.Label(self.frame, textvariable=self.per_second).grid(column=3, row=self.row, padx=(0, 5), sticky='W')
             self.text_visible = True # label should now be visible
 
     def update_per_second(self, p):
@@ -45,6 +53,10 @@ class Resource:
             self.per_second.set(f'{self.total}/s')
         else:
             self.per_second.set('')
+
+    def update_max_num(self, p):
+        self.max_num = int(self.max_num + p)
+        self.max_num_var.set(f'/{self.max_num}')
 
 
 class ResourceFrame(ttk.Frame):
@@ -65,33 +77,39 @@ class ResourceFrame(ttk.Frame):
         self.style.configure('MintChip.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#3EB489')
 
         # resources
-        ttk.Label(self, text='Resources', width=45).grid(column=0, row=0, columnspan=3, sticky='W')
+        ttk.Label(self, text='Resources').grid(column=0, row=0, columnspan=3, sticky='W')
         # .grid() for resources are called when the resources increment for the very first time
         # milk
-        self.milk = Resource(frame=self, row=1, name='Milk')
+        self.milk = Resource(frame=self, row=1, name='Milk', max_num=5000)
         # ice cream
-        self.ice_cream = Resource(frame=self, row=2, name='Ice Cream')
+        self.ice_cream = Resource(frame=self, row=2, name='Ice Cream', max_num=800)
         # vanilla ice cream
-        self.vanilla_i_c = Resource(frame=self, row=3, name='    Vanilla', style='Vanilla.TLabel')
+        self.vanilla_i_c = Resource(frame=self, row=3, name='    Vanilla', max_num=400, style='Vanilla.TLabel')
         # strawberry ice cream
-        self.strawberry_i_c = Resource(frame=self, row=4, name='    Strawberry', style='Strawberry.TLabel')
+        self.strawberry_i_c = Resource(frame=self, row=4, name='    Strawberry', max_num=400, style='Strawberry.TLabel')
         # chocolate ice cream
-        self.chocolate_i_c = Resource(frame=self, row=5, name='    Chocolate', style='Chocolate.TLabel')
+        self.chocolate_i_c = Resource(frame=self, row=5, name='    Chocolate', max_num=400, style='Chocolate.TLabel')
         # neapolitan ice cream
-        self.neapolitan_i_c = Resource(frame=self, row=6, name='    Neapolitan', style='Neapolitan.TLabel')
+        self.neapolitan_i_c = Resource(frame=self, row=6, name='    Neapolitan', max_num=400, style='Neapolitan.TLabel')
         # mint chocolate chip ice cream
-        self.mint_chip_i_c = Resource(frame=self, row=7, name='    Mint Chip', style='MintChip.TLabel')
+        self.mint_chip_i_c = Resource(frame=self, row=7, name='    Mint Chip', max_num=400, style='MintChip.TLabel')
         # TODO: add more resources here
 
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
         # bonuses / combos
         # TODO: add new labels for combos or bonuses
 
+        # keep a list of all resources
+        self.resource_list = [
+            self.milk, self.ice_cream, self.vanilla_i_c, self.strawberry_i_c, self.chocolate_i_c,
+            self.neapolitan_i_c, self.mint_chip_i_c,
+        ]
+
 
 class Ingredient(Resource):
     
-    def __init__(self, frame, row, name, style='TLabel'):
-        super().__init__(frame, row, name, style)
+    def __init__(self, frame, row, name, max_num, style='TLabel'):
+        super().__init__(frame, row, name, max_num, style)
         self.frame = frame
 
     def update(self, p):
@@ -108,20 +126,20 @@ class IngredientFrame(ttk.Frame):
         super().__init__(parent)
 
         # ingredients label
-        self.ingredient_lb = ttk.Label(self, text='Ingredients', width=45)
-        self.ingredient_lb.grid(column=0, row=0, columnspan=3, sticky='W')
+        self.ingredient_lb = ttk.Label(self, text='Ingredients')
+        self.ingredient_lb.grid(column=0, row=0, sticky='W')
         self.ingredient_lb.grid_remove()
         self.ingredient_lb_visible = False # change this when an Ingredient increases for the first time
         
         # .grid() for ingredients are called when ingredients increment for the very first time
         # vanilla (spice)
-        self.vanilla_spice = Ingredient(frame=self, row=1, name='Vanilla (spice)')
+        self.vanilla_spice = Ingredient(frame=self, row=1, name='Vanilla (spice)', max_num=1200)
         # strawberry (fruit)
-        self.strawberry_fruit = Ingredient(frame=self, row=2, name='Strawberry (fruit)')
+        self.strawberry_fruit = Ingredient(frame=self, row=2, name='Strawberry (fruit)', max_num=1200)
         # chocolate (food)
-        self.chocolate_food = Ingredient(frame=self, row=3, name='Chocolate (food)')
+        self.chocolate_food = Ingredient(frame=self, row=3, name='Chocolate (food)', max_num=1200)
         # peppermint
-        self.peppermint = Ingredient(frame=self, row=4, name='Peppermint')
+        self.peppermint = Ingredient(frame=self, row=4, name='Peppermint', max_num=1200)
         # TODO: add more ingredients here
 
 
@@ -164,7 +182,7 @@ class Building:
         self.hovertip.showtip()
 
     def sell(self, s):
-        # s is the number of things to sell
+        # s is the number of hosts to sell
         for i in range(s):
             for cost, cost_mult, i in zip(self.costs, self.cost_mults, range(len(self.costs))):
                 self.costs[i] = round(cost / cost_mult, 2) # update the cost
@@ -248,7 +266,7 @@ class Converter(Building):
         self.hovertip.showtip()
 
     def sell(self, s):
-        # s is the number of things to sell
+        # s is the number of hosts to sell
         for i in range(s):
             for cost, cost_mult, i in zip(self.costs, self.cost_mults, range(len(self.costs))):
                 self.costs[i] = round(cost / cost_mult, 2) # update the cost
@@ -309,6 +327,29 @@ class Converter(Building):
                 old_resource.update_per_second(sign * conversion_cost)
             self.new_resource.update_per_second(sign * -1 * self.bonus_val)
         self.previous_activated_num = self.activated_num # update for next time
+
+
+class StorageBuilding(Building):
+
+    def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, expand_resources, expand_vals, colspan=3):
+        # TODO: is there a way to do this w/o sending self.r_frame.milk? Maybe there should be an even simpler class than Buliding
+        #       that doesn't take a new_resource 
+        # new_resource and bonus_val won't be used. send self.r_frame.milk as new_resource
+        # and have bonus_val as 0, so Building's buy(), sell(), and use() won't change self.r_frame.milk
+        super().__init__(parent, r_frame, buy_resources, r_frame.milk, costs, cost_mults, 0, name, col, row, visible_resource, visible_value, colspan)
+        self.expand_resources = expand_resources # sequence of resources whos max_num is to be expanded
+        self.expand_vals = expand_vals # sequence of values to expand each resource by
+
+    def buy(self):
+        for expand_resource, expand_val in zip(self.expand_resources, self.expand_vals):
+            expand_resource.update_max_num(expand_val)
+        super().buy()
+
+    def sell(self, s):
+        for i in range(s):
+            for expand_resource, expand_val in zip(self.expand_resources, self.expand_vals):
+                expand_resource.update_max_num(-expand_val)
+        super().sell(s)
 
 
 class Convert:
@@ -383,12 +424,18 @@ class ControlPanelFrame(ttk.Frame):
         # peppermint farm
         self.peppermint_farm = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), self.i_frame.peppermint, [6], [1.14], 0.22, 'Peppermint Farm', 3, 3, self.r_frame.neapolitan_i_c, 1)
         self.peppermint_farm.create_hovertip('Cultivate peppermint (Mentha x piperita)')
+        # cold storage
+        cold_expand_vals = [] # contains amount to increase each resource in resource_list by
+        for resource in self.r_frame.resource_list:
+            cold_expand_vals.append(resource.max_num) # double the amount of each resource
+        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream,), [50,], [1.75,], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
+        self.cold_storage.create_hovertip('Provides space to store all cold resources.')
         # TODO: add more buildings here
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
-            self.peppermint_farm,
+            self.peppermint_farm, self.cold_storage,
         ]
 
 
@@ -432,7 +479,7 @@ class SellObject:
     def __init__(self, parent, building, row):
         self.parent = parent # Frame that widgets will be on
         self.building = building
-        self.sell_num = tk.IntVar() # count the number of things to sell
+        self.sell_num = tk.IntVar() # count the number of hosts to sell
         self.sp_label = ttk.Label(parent, text=self.building.name)
         self.sp_label.grid(column=0, row=row)
         self.sp_label.grid_remove()
@@ -480,7 +527,7 @@ class SellFrame(ttk.Frame):
 
         # sell button
         self.sell_button = ttk.Button(self, text='Sell', command=self.sell_all)
-        self.sell_button.grid(column=1, row=99, pady=5) # if there are >99 things to sell, then row # needs to increase
+        self.sell_button.grid(column=1, row=99, pady=5) # if there are >99 hosts to sell, then row # needs to increase
 
     def sell_all(self):
         for sell_object in self.sell_object_list:
@@ -497,25 +544,34 @@ class HovertipButtons(Hovertip):
     message to be used for Hovertip's text.
     """
 
-    def __init__(self, thing, description):
-        self.thing = thing
+    def __init__(self, host, description):
+        self.host = host # the Building instance to make a Hovertip for
         self.description = description
-        text = self.produce_text(thing, description)
-        super().__init__(thing.button, text, hover_delay=10)
+        text = self.produce_text(host, description)
+        super().__init__(host.button, text, hover_delay=10)
 
-    def produce_text(self, thing, description):
+    def produce_text(self, host, description):
         text = description + '\n' # string to be inputted
         text += '—————\nCost:'
-        for buy_resource, cost in zip(thing.buy_resources, thing.costs):
+        for buy_resource, cost in zip(host.buy_resources, host.costs):
             text += f'\n{cost} {buy_resource.name.strip()}'
-        if isinstance(thing, (Converter, Building)):
+        if isinstance(host, (StorageBuilding, Converter, Building)):
             text += '\n—————\nEffects:\n'
-        if isinstance(thing, Converter):
-            for old_resource, conversion_cost in zip(thing.old_resources, thing.conversion_costs):
+        if isinstance(host, Converter):
+            for old_resource, conversion_cost in zip(host.old_resources, host.conversion_costs):
                 text += f'{old_resource.name} conversion: -{conversion_cost}/sec\n'
-            text += f'{thing.new_resource.name} conversion: {thing.bonus_val}/sec'
-        elif isinstance(thing, Building):
-            text += f'{thing.new_resource.name} production: {thing.bonus_val}/sec'
+            text += f'{host.new_resource.name} conversion: {host.bonus_val}/sec'
+        elif isinstance(host, StorageBuilding):
+            # exception b/c we don't want every value listed for cold storages
+            if host.name == 'Cold Storage':
+                for i in range(2):
+                    text += f'Max {host.expand_resources[i].name}: {host.expand_vals[i]}\n'
+                text += f'Max Ice Cream (flavored): {host.expand_vals[2]}'
+                return text
+            for expand_resource, expand_val in zip(host.expand_resources, host.expand_vals):
+                text += f'Max {expand_resource.name.strip()}: {expand_val}\n'
+        elif isinstance(host, Building):
+            text += f'{host.new_resource.name} production: {host.bonus_val}/sec'
         return text
 
 
@@ -537,9 +593,11 @@ class MainApplication:
 
         # ingredients frame
         self.i_frame = IngredientFrame(self.r_frame)
-        self.i_frame.grid(column=0, row=98, columnspan=3, pady=5, sticky='NWES')
+        self.i_frame.grid(column=0, row=99, columnspan=4, padx=0, pady=(5, 0), sticky='WS')
         
         # create a notebook for holding tabs
+        #self.frame_for_nb = ttk.Frame()
+        #self.frame_for_nb.grid(column=1, row=0, rowspan=3, padx=10, pady=5, sticky='NE')
         self.nb = ttk.Notebook(self.parent)
         self.nb.grid(column=1, row=0, rowspan=3, padx=10, pady=5, sticky='NE')
 
@@ -625,7 +683,7 @@ class MainApplication:
         self.i_frame.vanilla_spice.update(i)
         self.i_frame.strawberry_fruit.update(i)
         self.i_frame.chocolate_food.update(i)
-        # self.i_frame.peppermint.update(i)
+        self.i_frame.peppermint.update(i)
 
 
 if __name__ == '__main__':
