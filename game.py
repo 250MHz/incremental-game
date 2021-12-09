@@ -27,13 +27,12 @@ class Resource:
         self.total = 0.0 # used in update_per_second
         self.max_num_var = tk.StringVar() # the maximum value that self.resource can be
         self.max_num = 0
-        self.update_max_num(max_num)
+        self.update_max_num(max_num) # set the default max_num as the argument max_num
+        self.efficiency_bonus_var = tk.StringVar()
+        self.current_efficiency_bonus = 0.0 # used to keep track of what's displayed by efficiency_bonus_var
 
     def update(self, p):
-        if round(self.resource.get() + p, 2) >= self.max_num:
-            self.resource.set(self.max_num)
-        else:
-            self.resource.set(round(self.resource.get() + p, 2))
+        self.resource.set(min(round(self.resource.get() + p, 2), self.max_num))
         if not self.text_visible:
             # unchanging label, shows the name of the resource
             ttk.Label(self.frame, text=self.name, style=self.style).grid(column=0, row=self.row, sticky='W')
@@ -43,10 +42,14 @@ class Resource:
             ttk.Label(self.frame, textvariable=self.max_num_var, foreground='#7d7d7d').grid(column=2, row=self.row, sticky='W')
             # changing label, shows the resource per second
             ttk.Label(self.frame, textvariable=self.per_second).grid(column=3, row=self.row, padx=(0, 5), sticky='W')
+            # changing label, shows the efficiency bonus
+            self.efficiency_bonus_label = ttk.Label(self.frame, textvariable=self.efficiency_bonus_var)
+            self.efficiency_bonus_label.grid(column=4, row=self.row, sticky='W')
             self.text_visible = True # label should now be visible
 
     def update_per_second(self, p):
         self.total = round(self.total + p, 2)
+        # update the label showing the resource per second
         if self.total > 0:
             self.per_second.set(f'+{self.total}/s')
         elif self.total < 0:
@@ -55,8 +58,22 @@ class Resource:
             self.per_second.set('')
 
     def update_max_num(self, p):
+        # update label showing the max number of the resource
         self.max_num = int(self.max_num + p)
         self.max_num_var.set(f'/{self.max_num}')
+    
+    def update_efficiency_bonus(self, p):
+        # update label showing the efficiency bonus
+        self.current_efficiency_bonus = round(self.current_efficiency_bonus + p, 2)
+        percentage = int(self.current_efficiency_bonus * 100)
+        if self.current_efficiency_bonus > 0:
+            self.efficiency_bonus_var.set(f'[+{percentage}%]')
+            self.efficiency_bonus_label.config(foreground='#008000')
+        elif self.current_efficiency_bonus < 0:
+            self.efficiency_bonus_var.set(f'[-{percentage}%]')
+            self.efficiency_bonus_label.config(foreground='#ff0000')
+        else:
+            self.efficiency_bonus_var.set('')
 
 
 class ResourceFrame(ttk.Frame):
@@ -168,6 +185,8 @@ class Building:
         self.button_visible = False # True if the Button for the Building is visible
         self.visible_resource = visible_resource # the Resource used to tell if the button should be visible
         self.visible_value = visible_value # number of visible_resources needed to make button visible
+        self.efficiency_bonus = 1.0 # modify the bonus given to use()
+        # TODO: use the efficiency_bonus value to add a [+x%] in ResourceFrame
 
     def buy(self):
         # deduct cost from Resource(s) to buy building
@@ -177,7 +196,7 @@ class Building:
         self.button['text'] = f'{self.name} ({self.num})' # update quantity on this Building's button
         for cost, cost_mult, i in zip(self.costs, self.cost_mults, range(len(self.costs))):
             self.costs[i] = round(cost * cost_mult, 2) # increase each cost by cost_mult
-        self.new_resource.update_per_second(self.bonus_val) # increase the Resource the building generates
+        self.new_resource.update_per_second(self.bonus_val * self.efficiency_bonus) # increase the Resource the building generates
         self.update_hovertip()
         self.hovertip.showtip()
 
@@ -187,7 +206,7 @@ class Building:
             for cost, cost_mult, i in zip(self.costs, self.cost_mults, range(len(self.costs))):
                 self.costs[i] = round(cost / cost_mult, 2) # update the cost
                 self.buy_resources[i].update(self.costs[i]) # refund the user
-                self.new_resource.update_per_second(-self.bonus_val) # update per second Label
+                self.new_resource.update_per_second(-self.bonus_val * self.efficiency_bonus) # update per second Label
             self.num = self.num - 1 # update the number of Building
         if self.num != 0:
             self.button['text'] = f'{self.name} ({self.num})'
@@ -203,7 +222,7 @@ class Building:
             self.button.state(['!disabled'])
 
     def use(self):
-        self.new_resource.update(self.num * self.bonus_val) # increase new_resource
+        self.new_resource.update(self.num * self.bonus_val * self.efficiency_bonus) # increase new_resource
 
     def create_hovertip(self, description):
         self.description = description
@@ -288,7 +307,7 @@ class Converter(Building):
                 b = False
                 break
         if b:
-            self.new_resource.update(self.activated_num * self.bonus_val)
+            self.new_resource.update(self.activated_num * self.bonus_val * self.efficiency_bonus)
 
     def available(self):
         # whether or not the Converter can be bought
@@ -314,9 +333,10 @@ class Converter(Building):
             else:
                 # 0 activated Converters
                 self.activated_down_b.state(['disabled'])
-        else:
+        else: # if there are no Converters, hide the '+' and '-' Buttons
             self.activated_up_b.grid_remove()
             self.activated_down_b.grid_remove()
+        # update the per second labels 
         diff = self.previous_activated_num - self.activated_num
         if diff > 0: # previous is higher than current
             sign = 1
@@ -325,7 +345,7 @@ class Converter(Building):
         for i in range(abs(diff)): # if diff == 0, then range(0)
             for old_resource, conversion_cost in zip(self.old_resources, self.conversion_costs):
                 old_resource.update_per_second(sign * conversion_cost)
-            self.new_resource.update_per_second(sign * -1 * self.bonus_val)
+            self.new_resource.update_per_second(sign * -1 * self.bonus_val * self.efficiency_bonus)
         self.previous_activated_num = self.activated_num # update for next time
 
 
@@ -349,6 +369,39 @@ class StorageBuilding(Building):
         for i in range(s):
             for expand_resource, expand_val in zip(self.expand_resources, self.expand_vals):
                 expand_resource.update_max_num(-expand_val)
+        super().sell(s)
+
+
+class EfficiencyBuilding(Building):
+    # improve productivity of a Resource
+    # we do the math differently than kittensgame
+    # pass as an argument, a tuple of all Buildings that give a +/s for a particular Resource
+    # we apply this bonus to all of these Buildings' use() function
+    # keep a double in each Building's __init__, when an EfficiencyBuilding is built,
+    # this double increases
+    # e.g., double starts at 1.0 and EffciencyBuilding improwves by 20%, then 
+    # double becomes 1.2, another one is built, then double becomes 1.4
+    # if efficiency buliding is sold, then decrease by 20%, so 1.4 -> 1.2
+    # if bonus_val is 0.63, then 20% increase is, 0.63 * 1.2
+
+    def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, applied_buildings, efficiency_increase, colspan=3):
+        # simlar to StorageBuilding, a Resource is not being directly increased because of this Building
+        # this Building only modifies the production of other Buildings
+        super().__init__(parent, r_frame, buy_resources, r_frame.milk, costs, cost_mults, 0, name, col, row, visible_resource, visible_value, colspan)
+        self.applied_buildings = applied_buildings
+        self.efficiency_increase = efficiency_increase
+
+    def buy(self):
+        # increase efficiency_bonus of every Building in self.applied_buildings
+        for building in self.applied_buildings:
+            building.efficiency_bonus += self.efficiency_increase
+        super().buy()
+
+    def sell(self, s):
+        # decrease efficiency_bonus of every Building in self.applied_buildings
+        for i in range(s):
+            for building in self.applied_buildings:
+                building.efficiency_bonus -= self.efficiency_increase
         super().sell(s)
 
 
@@ -428,14 +481,17 @@ class ControlPanelFrame(ttk.Frame):
         cold_expand_vals = [] # contains amount to increase each resource in resource_list by
         for resource in self.r_frame.resource_list:
             cold_expand_vals.append(resource.max_num) # double the amount of each resource
-        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream,), [50,], [1.75,], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
+        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream,), [50], [1.75], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
         self.cold_storage.create_hovertip('Provides space to store all cold resources.')
+        # milking machine
+        self.milking_machine = EfficiencyBuilding(self, self.r_frame, (self.r_frame.ice_cream,), [100], [1.15], 'Milking Machine', 3, 4, self.r_frame.mint_chip_i_c, 1, [self.cow], 0.20)
+        self.milking_machine.create_hovertip('Each machine improves the milk output of your cows by 20%')
         # TODO: add more buildings here
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
-            self.peppermint_farm, self.cold_storage,
+            self.peppermint_farm, self.cold_storage, self.milking_machine,
         ]
 
 
@@ -555,7 +611,7 @@ class HovertipButtons(Hovertip):
         text += '—————\nCost:'
         for buy_resource, cost in zip(host.buy_resources, host.costs):
             text += f'\n{cost} {buy_resource.name.strip()}'
-        if isinstance(host, (StorageBuilding, Converter, Building)):
+        if isinstance(host, Building):
             text += '\n—————\nEffects:\n'
         if isinstance(host, Converter):
             for old_resource, conversion_cost in zip(host.old_resources, host.conversion_costs):
@@ -570,6 +626,9 @@ class HovertipButtons(Hovertip):
                 return text
             for expand_resource, expand_val in zip(host.expand_resources, host.expand_vals):
                 text += f'Max {expand_resource.name.strip()}: {expand_val}\n'
+        elif isinstance(host, EfficiencyBuilding):
+            for building in host.applied_buildings:
+                text += f'{building.name} production bonus: {int(host.efficiency_increase * 100)}%'
         elif isinstance(host, Building):
             text += f'{host.new_resource.name} production: {host.bonus_val}/sec'
         return text
