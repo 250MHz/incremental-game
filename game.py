@@ -62,6 +62,7 @@ class ResourceFrame(ttk.Frame):
         self.style.configure('Strawberry.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#FC5A8D')
         self.style.configure('Chocolate.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#7B3F00')
         self.style.configure('Neapolitan.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#808080')
+        self.style.configure('MintChip.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#3EB489')
 
         # resources
         ttk.Label(self, text='Resources', width=45).grid(column=0, row=0, columnspan=3, sticky='W')
@@ -78,6 +79,10 @@ class ResourceFrame(ttk.Frame):
         self.chocolate_i_c = Resource(frame=self, row=5, name='    Chocolate', style='Chocolate.TLabel')
         # neapolitan ice cream
         self.neapolitan_i_c = Resource(frame=self, row=6, name='    Neapolitan', style='Neapolitan.TLabel')
+        # mint chocolate chip ice cream
+        self.mint_chip_i_c = Resource(frame=self, row=7, name='    Mint Chip', style='MintChip.TLabel')
+        # TODO: add more resources here
+
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
         # bonuses / combos
         # TODO: add new labels for combos or bonuses
@@ -115,6 +120,9 @@ class IngredientFrame(ttk.Frame):
         self.strawberry_fruit = Ingredient(frame=self, row=2, name='Strawberry (fruit)')
         # chocolate (food)
         self.chocolate_food = Ingredient(frame=self, row=3, name='Chocolate (food)')
+        # peppermint
+        self.peppermint = Ingredient(frame=self, row=4, name='Peppermint')
+        # TODO: add more ingredients here
 
 
 class Building:
@@ -306,13 +314,17 @@ class Converter(Building):
 class Convert:
     """Makes a Button that exchanges some old resource for a new resource."""
 
-    def __init__(self, parent, text, buy_resources, new_resource, costs, reward, col, row, colspan=1):
+    def __init__(self, parent, text, buy_resources, new_resource, costs, reward, col, row, visible_resource, visible_value, colspan=1):
         self.buy_resources = buy_resources # Resource(s) that gets converted into new_resource
         self.new_resource = new_resource # Resource converted from buy_resource
         self.costs = costs # number of buy_resources spent for each conversion
         self.reward = reward # number of new_resources received for each conversion
         self.button = ttk.Button(parent, text=text, state='disabled', width=25, command=self.convert)
         self.button.grid(column=col, row=row, columnspan=colspan, padx=5, pady=5, sticky='WE')
+        self.button.grid_remove() # hide the button until certain requirements are met
+        self.button_visible = False # True if the Button for the Building is visible
+        self.visible_resource = visible_resource # the Resource used to tell if the button should be visible
+        self.visible_value = visible_value # number of visible_resources needed to make button visible
 
     def convert(self):
         # send buy_resources as a tuple e.g. (ice_cream, vanilla_spice)
@@ -332,6 +344,10 @@ class Convert:
     def create_hovertip(self, description):
         self.hovertip = HovertipButtons(self, description)
 
+    def make_visible(self):
+        self.button.grid()
+        self.button_visible = True
+
 
 class ControlPanelFrame(ttk.Frame):
     """Contains Buttons used for buying Buildings."""
@@ -346,7 +362,8 @@ class ControlPanelFrame(ttk.Frame):
         self.collect_b.grid(column=0, row=0, padx=5, pady=5, sticky='W')
         self.collect_b_hovertip = Hovertip(self.collect_b, 'Collect some milk...', hover_delay=10)
         # convert milk to ice cream
-        self.convert_milk_i_c = Convert(self, 'Make ice cream', (self.r_frame.milk,), self.r_frame.ice_cream, [25], 1, 3, 0, 3)
+        self.convert_milk_i_c = Convert(self, 'Make ice cream', (self.r_frame.milk,), self.r_frame.ice_cream, [25], 1, 3, 0, self.r_frame.milk, 0, 3)
+        self.convert_milk_i_c.make_visible() # make this button visible immediately
         self.convert_milk_i_c.create_hovertip('Uses milk to create plain ice cream')
         # cow
         self.cow = Building(self, self.r_frame, (self.r_frame.milk,), self.r_frame.milk, [10], [1.12], 0.63, 'Cow', 0, 1, self.r_frame.milk, 3)
@@ -363,11 +380,15 @@ class ControlPanelFrame(ttk.Frame):
         # chocolate processor
         self.chocolate_processor = Building(self, self.r_frame, (self.r_frame.ice_cream,), self.i_frame.chocolate_food, [10], [1.31], 0.15, 'Chocolate Processor', 0, 3, self.r_frame.ice_cream, 1)
         self.chocolate_processor.create_hovertip('Build facilities to order and process cocoa beans')
+        # peppermint farm
+        self.peppermint_farm = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), self.i_frame.peppermint, [6], [1.14], 0.22, 'Peppermint Farm', 3, 3, self.r_frame.neapolitan_i_c, 1)
+        self.peppermint_farm.create_hovertip('Cultivate peppermint (Mentha x piperita)')
         # TODO: add more buildings here
 
-        # keep list of Buildings/Converters
+        # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
+            self.peppermint_farm,
         ]
 
 
@@ -380,21 +401,25 @@ class IceCreamFrame(ttk.Frame):
         self.i_frame = main.i_frame
 
         # vanilla ice cream
-        self.vanilla_i_c_convert = Convert(self, 'Vanilla Ice Cream', (self.r_frame.ice_cream, self.i_frame.vanilla_spice), self.r_frame.vanilla_i_c, [3, 8], 1, 0, 1)
+        self.vanilla_i_c_convert = Convert(self, 'Vanilla', (self.r_frame.ice_cream, self.i_frame.vanilla_spice), self.r_frame.vanilla_i_c, [3, 8], 1, 0, 1, self.r_frame.milk, 0)
         self.vanilla_i_c_convert.create_hovertip('Produce vanilla ice cream')
         # strawberry ice cream
-        self.strawberry_i_c_convert = Convert(self, 'Strawberry Ice Cream', (self.r_frame.ice_cream, self.i_frame.strawberry_fruit), self.r_frame.strawberry_i_c, [3, 8], 1, 0, 2)
+        self.strawberry_i_c_convert = Convert(self, 'Strawberry', (self.r_frame.ice_cream, self.i_frame.strawberry_fruit), self.r_frame.strawberry_i_c, [3, 8], 1, 0, 2, self.r_frame.milk, 0)
         self.strawberry_i_c_convert.create_hovertip('Produce strawberry ice cream')
         # chocolate ice cream
-        self.chocolate_i_c_convert = Convert(self, 'Chocolate Ice Cream', (self.r_frame.ice_cream, self.i_frame.chocolate_food), self.r_frame.chocolate_i_c, [3, 8], 1, 0, 3)
+        self.chocolate_i_c_convert = Convert(self, 'Chocolate', (self.r_frame.ice_cream, self.i_frame.chocolate_food), self.r_frame.chocolate_i_c, [3, 8], 1, 0, 3, self.r_frame.milk, 0)
         self.chocolate_i_c_convert.create_hovertip('Produce chocolate ice cream')
         # neapolitan ice cream
-        self.neapolitan_i_c_convert = Convert(self, 'Neapolitan Ice Cream', (self.r_frame.vanilla_i_c, self.r_frame.strawberry_i_c, self.r_frame.chocolate_i_c), self.r_frame.neapolitan_i_c, [3, 3, 3], 1, 0, 4)
+        self.neapolitan_i_c_convert = Convert(self, 'Neapolitan', (self.r_frame.vanilla_i_c, self.r_frame.strawberry_i_c, self.r_frame.chocolate_i_c), self.r_frame.neapolitan_i_c, [3, 3, 3], 1, 0, 4, self.r_frame.milk, 0)
         self.neapolitan_i_c_convert.create_hovertip('Produce neapolitan ice cream')
+        # mint chocolate chip ice cream
+        self.mint_chip_i_c_convert = Convert(self, 'Mint Chocolate Chip', (self.r_frame.ice_cream, self.i_frame.chocolate_food, self.i_frame.peppermint), self.r_frame.mint_chip_i_c, [3, 4, 5], 1, 0, 5, self.r_frame.neapolitan_i_c, 1)
+        self.mint_chip_i_c_convert.create_hovertip('Produce mint chocolate chip ice cream')
 
-        # keep list of ice creams
+        # keep list of ice creams, when you add a new ice cream, you need to add it here
         self.i_c_converts = [
             self.vanilla_i_c_convert, self.strawberry_i_c_convert, self.chocolate_i_c_convert, self.neapolitan_i_c_convert,
+            self.mint_chip_i_c_convert,
         ]
 
 
@@ -580,10 +605,12 @@ class MainApplication:
                 self.nb.select(0)
             self.nb.tab(2, state='hidden') 
             self.sell_tab_visible = False
-        # make Convert buttons available/visible
+
         self.c_frame.convert_milk_i_c.available() # copnvert_milk_i_c is not in i_c_frame
-        for ice_cream in self.i_c_frame.i_c_converts:
-            ice_cream.available()
+        for ice_cream in self.i_c_frame.i_c_converts: 
+            ice_cream.available() # make Convert buttons available
+            if not ice_cream.button_visible and ice_cream.visible_resource.resource.get() >= ice_cream.visible_value:
+                ice_cream.make_visible() # make Convert button visible
         # make ice cream tab visible
         if not self.i_c_tab_visible and self.r_frame.ice_cream.resource.get() > 0:
             self.nb.tab(1, state='normal')
@@ -598,6 +625,7 @@ class MainApplication:
         self.i_frame.vanilla_spice.update(i)
         self.i_frame.strawberry_fruit.update(i)
         self.i_frame.chocolate_food.update(i)
+        # self.i_frame.peppermint.update(i)
 
 
 if __name__ == '__main__':
