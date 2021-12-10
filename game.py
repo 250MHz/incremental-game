@@ -87,6 +87,7 @@ class ResourceFrame(ttk.Frame):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.columnconfigure(1, minsize=60)
 
         self.style = ttk.Style()
         self.text_font = font.nametofont('TkTextFont')
@@ -147,6 +148,7 @@ class IngredientFrame(ttk.Frame):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.columnconfigure(1, minsize=60)
 
         # ingredients label
         self.ingredient_lb = ttk.Label(self, text='Ingredients')
@@ -164,8 +166,13 @@ class IngredientFrame(ttk.Frame):
         # peppermint
         self.peppermint = Ingredient(frame=self, row=4, name='Peppermint', max_num=500)
         # cherry (fruit)
-        self.cherry_fruit = Ingredient(frame=self, row=5, name='Cherry', max_num=500)
+        self.cherry_fruit = Ingredient(frame=self, row=5, name='Cherry (fruit)', max_num=500)
         # TODO: add more ingredients here
+
+        self.ingredient_list = [
+            self.vanilla_spice, self.strawberry_fruit, self.chocolate_food, self.peppermint,
+            self.cherry_fruit,
+        ]
 
 
 class Building:
@@ -527,7 +534,7 @@ class ControlPanelFrame(ttk.Frame):
         # cold storage
         cold_expand_vals = [] # contains amount to increase each resource in resource_list by
         for resource in self.r_frame.resource_list:
-            cold_expand_vals.append(resource.max_num) # double the amount of each resource
+            cold_expand_vals.append(resource.max_num) # double the max amount of each resource
         self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.mint_chip_i_c), [50, 10], [1.75, 1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
         self.cold_storage.create_hovertip('Provides space to store all cold resources.')
         # milking machine
@@ -536,12 +543,18 @@ class ControlPanelFrame(ttk.Frame):
         # cherry orchard
         self.cherry_orchard = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c, self.r_frame.mint_chip_i_c), (self.i_frame.cherry_fruit,), [5, 7], [1.2, 1.18], [0.18], 'Cherry Orchard', 0, 5, self.r_frame.mint_chip_i_c, 1)
         self.cherry_orchard.create_hovertip('Plantation for growing cherries')
+        # warehouse
+        warehouse_expand_vals = [] # contains amount to increase each ingredient in ingredient_list by
+        for ingredient in self.i_frame.ingredient_list:
+            warehouse_expand_vals.append(ingredient.max_num) # double the max amount of each ingredient
+        self.warehouse = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.strawberry_i_c, self.r_frame.cherry_i_c), [125, 15, 5], [1.5, 1.2, 1.15], 'Warehouse', 3, 5, self.r_frame.cherry_i_c, 1, self.i_frame.ingredient_list, warehouse_expand_vals)
+        self.warehouse.create_hovertip('Provides space to store your ingredients')
         # TODO: add more buildings here
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
-            self.peppermint_farm, self.cold_storage, self.milking_machine, self.cherry_orchard
+            self.peppermint_farm, self.cold_storage, self.milking_machine, self.cherry_orchard, self.warehouse,
         ]
 
 
@@ -674,11 +687,15 @@ class HovertipButtons(Hovertip):
             # exception b/c we don't want every value listed for cold storages
             if host.name == 'Cold Storage':
                 for i in range(2):
-                    text += f'\nMax {host.expand_resources[i].name}: {host.expand_vals[i]}'
-                text += f'\nMax Ice Cream (flavored): {host.expand_vals[2]}'
+                    text += f'\nMax {host.expand_resources[i].name}: +{host.expand_vals[i]}'
+                text += f'\nMax Ice Cream (flavored): +{host.expand_vals[2]}'
+                return text
+            # exception b/c we don't want every value listed for warehouses
+            if host.name == 'Warehouse':
+                text += f'\nMax Ingredient (every): +{host.expand_vals[0]}'
                 return text
             for expand_resource, expand_val in zip(host.expand_resources, host.expand_vals):
-                text += f'\nMax {expand_resource.name.strip()}: {expand_val}'
+                text += f'\nMax {expand_resource.name.strip()}: +{expand_val}'
         elif isinstance(host, EfficiencyBuilding):
             for building, efficiency_increase in zip(host.applied_buildings, host.efficiency_increases):
                 text += f'\n{building.name} production bonus: {int(efficiency_increase * 100)}%'
@@ -694,7 +711,8 @@ class MainApplication:
         self.parent = parent
         self.parent.title('Simple incremental game')
         self.parent.eval('tk::PlaceWindow . center')
-        self.parent.columnconfigure(1, weight=1)
+        self.parent.columnconfigure(0, minsize=300)
+        self.parent.columnconfigure(1, weight=1, minsize=300)
         self.parent.rowconfigure(0, weight=1)
 
         self.style = ttk.Style()
