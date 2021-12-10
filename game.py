@@ -752,6 +752,11 @@ class MainApplication:
         # keep selling spinboxes hidden until building is acquired for the first time
         self.sell_tab_visible = False
 
+        # about frame
+        self.about_frame = ttk.Frame(self.nb)
+        self.nb.add(self.about_frame, text='About')
+        # add Labels explaining "About" information here
+
         # use buildings
         self.use_buildings()
 
