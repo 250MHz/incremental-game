@@ -1,7 +1,4 @@
 Ideas:
-- Add a widget to the right hand side of all the ice cream buttons in the ice cream tab.
-This widget controls the amount of ice cream that's converted. E.g. 1/5/10/25/100
-
 - Add more Ice Cream flavors, make more Buildings and Resources and Ingredients in order to
 make these new flavors.
 
