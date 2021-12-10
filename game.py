@@ -96,6 +96,7 @@ class ResourceFrame(ttk.Frame):
         self.style.configure('Neapolitan.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#808080')
         self.style.configure('MintChip.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#3EB489')
         self.style.configure('Cherry.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#DE3163')
+        self.style.configure('FrenchVanilla.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#D7BB6F')
 
         # resources
         ttk.Label(self, text='Resources').grid(column=0, row=0, columnspan=3, sticky='W')
@@ -116,6 +117,8 @@ class ResourceFrame(ttk.Frame):
         self.mint_chip_i_c = Resource(frame=self, row=7, name='    Mint Chip', max_num=400, style='MintChip.TLabel')
         # cherry ice cream
         self.cherry_i_c = Resource(frame=self, row=8, name='    Cherry', max_num=400, style='Cherry.TLabel')
+        # french vanilla ice cream
+        self.french_vanilla_i_c = Resource(frame=self, row=8, name='    French Vanilla', max_num=400, style='FrenchVanilla.TLabel')
         # TODO: add more resources here
 
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
@@ -125,7 +128,7 @@ class ResourceFrame(ttk.Frame):
         # keep a list of all resources
         self.resource_list = [
             self.milk, self.ice_cream, self.vanilla_i_c, self.strawberry_i_c, self.chocolate_i_c,
-            self.neapolitan_i_c, self.mint_chip_i_c, self.cherry_i_c,
+            self.neapolitan_i_c, self.mint_chip_i_c, self.cherry_i_c, self.french_vanilla_i_c,
         ]
 
 
@@ -166,11 +169,14 @@ class IngredientFrame(ttk.Frame):
         self.peppermint = Ingredient(frame=self, row=4, name='Peppermint', max_num=500)
         # cherry (fruit)
         self.cherry_fruit = Ingredient(frame=self, row=5, name='Cherry (fruit)', max_num=500)
+        # egg
+        self.egg = Ingredient(frame=self, row=6, name='Egg', max_num=750)
         # TODO: add more ingredients here
 
+        # keep list of all ingredients
         self.ingredient_list = [
             self.vanilla_spice, self.strawberry_fruit, self.chocolate_food, self.peppermint,
-            self.cherry_fruit,
+            self.cherry_fruit, self.egg,
         ]
 
 
@@ -533,7 +539,7 @@ class ControlPanelFrame(ttk.Frame):
         cold_expand_vals = [] # contains amount to increase each resource in resource_list by
         for resource in self.r_frame.resource_list:
             cold_expand_vals.append(resource.max_num) # double the max amount of each resource
-        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.mint_chip_i_c), [50, 10], [1.75, 1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
+        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.mint_chip_i_c,), [50, 10], [1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
         self.cold_storage.create_hovertip('Provides space to store all cold resources.')
         # milking machine
         self.milking_machine = EfficiencyBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.neapolitan_i_c), [100, 6], [1.15, 1.5], 'Milking Machine', 3, 4, self.r_frame.mint_chip_i_c, 1, [self.cow], [0.20])
@@ -547,12 +553,19 @@ class ControlPanelFrame(ttk.Frame):
             warehouse_expand_vals.append(ingredient.max_num) # double the max amount of each ingredient
         self.warehouse = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.strawberry_i_c, self.r_frame.cherry_i_c), [125, 15, 5], [1.5, 1.2, 1.15], 'Warehouse', 3, 5, self.r_frame.cherry_i_c, 1, self.i_frame.ingredient_list, warehouse_expand_vals)
         self.warehouse.create_hovertip('Provides space to store your ingredients')
+        # neapolitan investor
+        self.neapolitan_investor = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), (self.i_frame.vanilla_spice, self.i_frame.strawberry_fruit, self.i_frame.chocolate_food), [12], [1.14], [2.32, 2.32, 2.32], 'Neapolitan Investor', 0, 6, self.r_frame.cherry_i_c, 1)
+        self.neapolitan_investor.create_hovertip('Invest in the Neapolitan ice cream trade')
+        # chicken coop
+        self.chicken_coop = Building(self, self.r_frame, (self.r_frame.cherry_i_c,), (self.i_frame.egg,), [5], [1.18], [0.72], 'Chicken Coop', 3, 6, self.r_frame.cherry_i_c, 1)
+        self.chicken_coop.create_hovertip('Build a coop to get eggs from chickens')
         # TODO: add more buildings here
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
             self.peppermint_farm, self.cold_storage, self.milking_machine, self.cherry_orchard, self.warehouse,
+            self.neapolitan_investor, self.chicken_coop,
         ]
 
 
@@ -597,10 +610,13 @@ class IceCreamFrame(ttk.Frame):
         # cherry ice cream
         self.cherry_i_c_convert = Convert(self, 'Cherry', (self.r_frame.ice_cream, self.i_frame.cherry_fruit), self.r_frame.cherry_i_c, [3, 8], 1, 0, 6, self.r_frame.mint_chip_i_c, 1)
         self.cherry_i_c_convert.create_hovertip('Produce cherry ice cream')
+        # french vanilla ice cream
+        self.french_vanilla_i_c_convert = Convert(self, 'French Vanilla', (self.r_frame.ice_cream, self.i_frame.vanilla_spice, self.i_frame.egg), self.r_frame.french_vanilla_i_c, [3, 8, 6], 1, 0, 7, self.i_frame.egg, 1)
+
         # keep list of ice creams, when you add a new ice cream, you need to add it here
         self.i_c_converts = [
             self.vanilla_i_c_convert, self.strawberry_i_c_convert, self.chocolate_i_c_convert, self.neapolitan_i_c_convert,
-            self.mint_chip_i_c_convert, self.cherry_i_c_convert,
+            self.mint_chip_i_c_convert, self.cherry_i_c_convert, self.french_vanilla_i_c_convert,
         ]
 
 
@@ -829,7 +845,7 @@ class MainApplication:
         self.parent.after(10, self.available)
     
     def cheat(self):
-        i = 100
+        i = 1000
         self.r_frame.milk.update(i)
         self.r_frame.ice_cream.update(i)
         self.i_frame.vanilla_spice.update(i)
@@ -837,6 +853,7 @@ class MainApplication:
         self.i_frame.chocolate_food.update(i)
         self.i_frame.peppermint.update(i)
         self.i_frame.cherry_fruit.update(i)
+        self.i_frame.egg.update(i)
 
 
 if __name__ == '__main__':
