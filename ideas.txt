@@ -2,9 +2,6 @@ Ideas:
 - Add Buttons on the right hand side of all the ice cream buttons in the ice cream tab.
 Whiel the button is on, Resources will be spent to create the resource every second.
 
-- Add efficiency system. E.g., have a Building that improves the +resource/sec of a certain
-resource by 20%.
-
 - Add more Ice Cream flavors, make more Buildings and Resources and Ingredients in order to
 make these new flavors.
 
