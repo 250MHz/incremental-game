@@ -317,13 +317,10 @@ class Converter(Building):
             self.button['text'] = self.name # Button doesn't show quantity if quantity is 0
 
     def use(self):
-        b = True # make this False if there are not enough Resources to convert
         for old_resource, conversion_cost in zip(self.old_resources, self.conversion_costs):
-            if old_resource.resource.get() + (self.activated_num * -conversion_cost) <= 0:
-                b = False
-                break
-        # if there is ever not enough old_resources for the full conversion, stop the conversion
-        if b:
+            if old_resource.resource.get() + (self.activated_num * -conversion_cost) < 0:
+                break # if there is ever not enough old_resources for the full conversion, stop the conversion
+        else: # no break
             for old_resource, conversion_cost in zip(self.old_resources, self.conversion_costs):
                 # no need to check if updating results in neagtive old_resource b/c it was done above
                 old_resource.update(self.activated_num * -conversion_cost)
@@ -336,7 +333,7 @@ class Converter(Building):
             if (buy_resource.resource.get() < cost):
                 self.button.state(['disabled'])
                 break
-        else:
+        else: # no break
             self.button.state(['!disabled'])
         
         if self.num > 0:
@@ -372,6 +369,7 @@ class Converter(Building):
 
 
 class StorageBuilding(Building):
+    """Building that increases the maximum amount of a sequence of Resources."""
 
     def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, expand_resources, expand_vals, colspan=3):
         # TODO: is there a way to do this w/o sending self.r_frame.milk? Maybe there should be an even simpler class than Buliding
@@ -395,16 +393,10 @@ class StorageBuilding(Building):
 
 
 class EfficiencyBuilding(Building):
-    # improve productivity of a Resource
-    # we do the math differently than kittensgame
-    # pass as an argument, a tuple of all Buildings that give a +/s for a particular Resource
-    # we apply this bonus to all of these Buildings' use() function
-    # keep a double in each Building's __init__, when an EfficiencyBuilding is built,
-    # this double increases
-    # e.g., double starts at 1.0 and EffciencyBuilding improwves by 20%, then 
-    # double becomes 1.2, another one is built, then double becomes 1.4
-    # if efficiency buliding is sold, then decrease by 20%, so 1.4 -> 1.2
-    # if bonus_val is 0.63, then 20% increase is, 0.63 * 1.2
+    """
+    Building that improves the production of a sequence of Resources
+    by a sequence of percentages.
+    """
 
     def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, applied_buildings, efficiency_increases, colspan=3):
         # simlar to StorageBuilding, a Resource is not being directly increased because of this Building
@@ -476,9 +468,15 @@ class Convert:
     def convert(self):
         # send buy_resources as a tuple e.g. (ice_cream, vanilla_spice)
         # send costs as a tuple e.g. (3, 10)
-        for buy_resource, cost in zip(self.buy_resources, self.costs):
-            buy_resource.update(-cost)
-        self.new_resource.update(self.reward)
+        for i in range(Convert.convert_num.get()):
+            for buy_resource, cost in zip(self.buy_resources, self.costs):
+                if buy_resource.resource.get() - cost < 0:
+                    break # if there is ever not enough buy_resources for the full conversion, stop the conversion
+            else: # no break
+                for buy_resource, cost in zip(self.buy_resources, self.costs):
+                    # no need to check if updating results in neagtive buy_resource b/c it was done above
+                    buy_resource.update(-cost)
+                self.new_resource.update(self.reward)
 
     def available(self):
         for buy_resource, cost in zip(self.buy_resources, self.costs):
@@ -511,6 +509,7 @@ class ControlPanelFrame(ttk.Frame):
         # convert milk to ice cream
         self.convert_milk_i_c = Convert(self, 'Make ice cream', (self.r_frame.milk,), self.r_frame.ice_cream, [25], 1, 3, 0, self.r_frame.milk, 0, 3)
         self.convert_milk_i_c.make_visible() # make this button visible immediately
+        Convert.convert_num = tk.IntVar(value=1)
         self.convert_milk_i_c.create_hovertip('Uses milk to create plain ice cream')
         # cow
         self.cow = Building(self, self.r_frame, (self.r_frame.milk,), (self.r_frame.milk,), [10], [1.12], [0.63], 'Cow', 0, 1, self.r_frame.milk, 3)
@@ -564,6 +563,21 @@ class IceCreamFrame(ttk.Frame):
         super().__init__(parent)
         self.r_frame = main.r_frame
         self.i_frame = main.i_frame
+
+        # Radiobuttons to select how much to convert for each conversion
+        self.convert_num_frame = ttk.Frame(self)
+        convert_rb_label = ttk.Label(self.convert_num_frame, text='Controls')
+        Hovertip(convert_rb_label, "Control the number of ice cream to convert at a time.\nIf you don't have enough for the number selected,\nthe quantity converted will be as much as possible.\nThis value also applies to the 'Make ice cream' button.", hover_delay=10)
+        times_1 = ttk.Radiobutton(self.convert_num_frame, text='×1', variable=Convert.convert_num, value=1)
+        times_10 = ttk.Radiobutton(self.convert_num_frame, text='×10', variable=Convert.convert_num, value=10)
+        times_100 = ttk.Radiobutton(self.convert_num_frame, text='×100', variable=Convert.convert_num, value=100)
+        times_1000 = ttk.Radiobutton(self.convert_num_frame, text='×1000', variable=Convert.convert_num, value=1000)
+        self.convert_num_frame.grid(column=1, row=0, rowspan=10, padx=(70, 0), sticky='NE')
+        convert_rb_label.grid(column=0, row=0, sticky='WE')
+        times_1.grid(column=0, row=1, padx=(10, 0), sticky='WE')
+        times_10.grid(column=0, row=2, padx=(10, 0), sticky='WE')
+        times_100.grid(column=0, row=3, padx=(10, 0), sticky='WE')
+        times_1000.grid(column=0, row=4, padx=(10, 0), sticky='WE')
 
         # vanilla ice cream
         self.vanilla_i_c_convert = Convert(self, 'Vanilla', (self.r_frame.ice_cream, self.i_frame.vanilla_spice), self.r_frame.vanilla_i_c, [3, 8], 1, 0, 1, self.r_frame.milk, 0)
@@ -717,7 +731,7 @@ class MainApplication:
         menubar = tk.Menu(parent)
         menu_help = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_help, label='Help')
-        menu_help_details = 'David,Jennifer, Nathan \Section 4\ Group 10' 
+        menu_help_details = 'Section 4, Group 10:\nDavid\nJennifer\nNathan'
         menu_help.add_command(label='About', command=lambda: messagebox.showinfo(title='About', message='Incremental game for GUI project', detail=menu_help_details))
         menu_help.add_separator()
         parent['menu'] = menubar
