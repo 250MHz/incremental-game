@@ -3,8 +3,7 @@ Incremental game - GUI project
 Layout idea and concepts are modeled on https://kittensgame.com/web/#
 """
 import tkinter as tk
-from tkinter import ttk
-from tkinter import font
+from tkinter import ttk, font, messagebox
 
 from tooltip import Hovertip
 
@@ -715,6 +714,14 @@ class MainApplication:
         self.parent.columnconfigure(1, weight=1, minsize=300)
         self.parent.rowconfigure(0, weight=1)
 
+        menubar = tk.Menu(parent)
+        menu_help = tk.Menu(menubar)
+        menubar.add_cascade(menu=menu_help, label='Help')
+        menu_help_details = 'test\ntest\ntest\ntest'
+        menu_help.add_command(label='About', command=lambda: messagebox.showinfo(title='About', message='Incremental game for GUI project', detail=menu_help_details))
+        menu_help.add_separator()
+        parent['menu'] = menubar
+
         self.style = ttk.Style()
         self.text_font = font.nametofont('TkTextFont')
 
@@ -751,11 +758,6 @@ class MainApplication:
         self.nb.bind('<<NotebookTabChanged>>', lambda e: self.sell_frame.sf_update_sp())
         # keep selling spinboxes hidden until building is acquired for the first time
         self.sell_tab_visible = False
-
-        # about frame
-        self.about_frame = ttk.Frame(self.nb)
-        self.nb.add(self.about_frame, text='About')
-        # add Labels explaining "About" information here
 
         # use buildings
         self.use_buildings()
@@ -825,5 +827,6 @@ class MainApplication:
 
 if __name__ == '__main__':
     root = tk.Tk()
+    root.option_add('*tearOff', tk.FALSE)
     MainApplication(root)
     root.mainloop()
