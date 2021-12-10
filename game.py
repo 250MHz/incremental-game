@@ -517,7 +517,7 @@ class ControlPanelFrame(ttk.Frame):
         self.cow = Building(self, self.r_frame, (self.r_frame.milk,), (self.r_frame.milk,), [10], [1.12], [0.63], 'Cow', 0, 1, self.r_frame.milk, 3)
         self.cow.create_hovertip('Get a cow')
         # factory
-        self.factory = Converter(self, self.r_frame, (self.r_frame.ice_cream,), (self.r_frame.milk,), (self.r_frame.ice_cream,), [5], [1.2], [1], (self.convert_milk_i_c.costs[0]/10,), 'Factory', 3, 1, self.r_frame.ice_cream, 1)
+        self.factory = Converter(self, self.r_frame, (self.r_frame.ice_cream,), (self.r_frame.milk,), (self.r_frame.ice_cream,), [10], [1.75], [1], (self.convert_milk_i_c.costs[0]/10,), 'Factory', 3, 1, self.r_frame.ice_cream, 1)
         self.factory.create_hovertip("Converts milk to ice cream. Factories stop running\nif you don't have enough milk and continue\nrunning when you have enough.")
         # vanilla plantation
         self.vanilla_plantation = Building(self, self.r_frame, (self.r_frame.ice_cream,), (self.i_frame.vanilla_spice,), [10], [1.29], [0.15], 'Vanilla Plantation', 0, 2, self.r_frame.ice_cream, 1)
