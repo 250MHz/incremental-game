@@ -95,6 +95,7 @@ class ResourceFrame(ttk.Frame):
         self.style.configure('Chocolate.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#7B3F00')
         self.style.configure('Neapolitan.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#808080')
         self.style.configure('MintChip.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#3EB489')
+        self.style.configure('Cherry.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#DE3163')
 
         # resources
         ttk.Label(self, text='Resources').grid(column=0, row=0, columnspan=3, sticky='W')
@@ -113,6 +114,8 @@ class ResourceFrame(ttk.Frame):
         self.neapolitan_i_c = Resource(frame=self, row=6, name='    Neapolitan', max_num=400, style='Neapolitan.TLabel')
         # mint chocolate chip ice cream
         self.mint_chip_i_c = Resource(frame=self, row=7, name='    Mint Chip', max_num=400, style='MintChip.TLabel')
+        # cherry ice cream
+        self.cherry_i_c = Resource(frame=self, row=8, name='    Cherry', max_num=400, style='Cherry.TLabel')
         # TODO: add more resources here
 
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
@@ -122,7 +125,7 @@ class ResourceFrame(ttk.Frame):
         # keep a list of all resources
         self.resource_list = [
             self.milk, self.ice_cream, self.vanilla_i_c, self.strawberry_i_c, self.chocolate_i_c,
-            self.neapolitan_i_c, self.mint_chip_i_c,
+            self.neapolitan_i_c, self.mint_chip_i_c, self.cherry_i_c,
         ]
 
 
@@ -160,6 +163,8 @@ class IngredientFrame(ttk.Frame):
         self.chocolate_food = Ingredient(frame=self, row=3, name='Chocolate (food)', max_num=500)
         # peppermint
         self.peppermint = Ingredient(frame=self, row=4, name='Peppermint', max_num=500)
+        # cherry (fruit)
+        self.cherry_fruit = Ingredient(frame=self, row=5, name='Cherry', max_num=500)
         # TODO: add more ingredients here
 
 
@@ -207,11 +212,12 @@ class Building:
 
     def sell(self, s):
         # s is the number of hosts to sell
-        for i in range(s):
+        for j in range(s):
             for cost, cost_mult, i in zip(self.costs, self.cost_mults, range(len(self.costs))):
                 self.costs[i] = cost / cost_mult # update the cost
                 self.buy_resources[i].update(cost / cost_mult) # refund the user
-                self.new_resources[i].update_per_second(-self.bonus_vals[i] * self.efficiency_bonus) # update per second Label
+            for new_resource, bonus_val in zip(self.new_resources, self.bonus_vals):
+                new_resource.update_per_second(-bonus_val * self.efficiency_bonus) # update per second Label
             self.num = self.num - 1 # update the number of Building
         if self.num != 0:
             self.button['text'] = f'{self.name} ({self.num})'
@@ -516,23 +522,26 @@ class ControlPanelFrame(ttk.Frame):
         self.chocolate_processor = Building(self, self.r_frame, (self.r_frame.ice_cream,), (self.i_frame.chocolate_food,), [10], [1.31], [0.15], 'Chocolate Processor', 0, 3, self.r_frame.ice_cream, 1)
         self.chocolate_processor.create_hovertip('Build facilities to order and process cocoa beans')
         # peppermint farm
-        self.peppermint_farm = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), (self.i_frame.peppermint,), [6], [1.14], [0.22], 'Peppermint Farm', 3, 3, self.r_frame.neapolitan_i_c, 1)
+        self.peppermint_farm = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), (self.i_frame.peppermint,), [3], [1.14], [0.22], 'Peppermint Farm', 3, 3, self.r_frame.neapolitan_i_c, 1)
         self.peppermint_farm.create_hovertip('Cultivate peppermint (Mentha x piperita)')
         # cold storage
         cold_expand_vals = [] # contains amount to increase each resource in resource_list by
         for resource in self.r_frame.resource_list:
             cold_expand_vals.append(resource.max_num) # double the amount of each resource
-        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.mint_chip_i_c), [50, 2], [1.75, 1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
+        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.mint_chip_i_c), [50, 10], [1.75, 1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
         self.cold_storage.create_hovertip('Provides space to store all cold resources.')
         # milking machine
-        self.milking_machine = EfficiencyBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.neapolitan_i_c), [100, 3], [1.15, 1.5], 'Milking Machine', 3, 4, self.r_frame.mint_chip_i_c, 1, [self.cow], [0.20])
+        self.milking_machine = EfficiencyBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.neapolitan_i_c), [100, 6], [1.15, 1.5], 'Milking Machine', 3, 4, self.r_frame.mint_chip_i_c, 1, [self.cow], [0.20])
         self.milking_machine.create_hovertip('Each machine improves the milk output of your cows by 20%')
+        # cherry orchard
+        self.cherry_orchard = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c, self.r_frame.mint_chip_i_c), (self.i_frame.cherry_fruit,), [5, 7], [1.2, 1.18], [0.18], 'Cherry Orchard', 0, 5, self.r_frame.mint_chip_i_c, 1)
+        self.cherry_orchard.create_hovertip('Plantation for growing cherries')
         # TODO: add more buildings here
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
-            self.peppermint_farm, self.cold_storage, self.milking_machine,
+            self.peppermint_farm, self.cold_storage, self.milking_machine, self.cherry_orchard
         ]
 
 
@@ -559,11 +568,13 @@ class IceCreamFrame(ttk.Frame):
         # mint chocolate chip ice cream
         self.mint_chip_i_c_convert = Convert(self, 'Mint Chocolate Chip', (self.r_frame.ice_cream, self.i_frame.chocolate_food, self.i_frame.peppermint), self.r_frame.mint_chip_i_c, [3, 4, 5], 1, 0, 5, self.r_frame.neapolitan_i_c, 1)
         self.mint_chip_i_c_convert.create_hovertip('Produce mint chocolate chip ice cream')
-
+        # cherry ice cream
+        self.cherry_i_c_convert = Convert(self, 'Cherry', (self.r_frame.ice_cream, self.i_frame.cherry_fruit), self.r_frame.cherry_i_c, [3, 8], 1, 0, 6, self.r_frame.mint_chip_i_c, 1)
+        self.cherry_i_c_convert.create_hovertip('Produce cherry ice cream')
         # keep list of ice creams, when you add a new ice cream, you need to add it here
         self.i_c_converts = [
             self.vanilla_i_c_convert, self.strawberry_i_c_convert, self.chocolate_i_c_convert, self.neapolitan_i_c_convert,
-            self.mint_chip_i_c_convert,
+            self.mint_chip_i_c_convert, self.cherry_i_c_convert,
         ]
 
 
@@ -786,6 +797,7 @@ class MainApplication:
         self.i_frame.strawberry_fruit.update(i)
         self.i_frame.chocolate_food.update(i)
         self.i_frame.peppermint.update(i)
+        self.i_frame.cherry_fruit.update(i)
 
 
 if __name__ == '__main__':
