@@ -717,7 +717,7 @@ class MainApplication:
         menubar = tk.Menu(parent)
         menu_help = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_help, label='Help')
-        menu_help_details = 'test\ntest\ntest\ntest'
+        menu_help_details = 'David,Jennifer, Nathan \Section 4\ Group 10' 
         menu_help.add_command(label='About', command=lambda: messagebox.showinfo(title='About', message='Incremental game for GUI project', detail=menu_help_details))
         menu_help.add_separator()
         parent['menu'] = menubar
