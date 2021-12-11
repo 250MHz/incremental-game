@@ -97,6 +97,11 @@ class ResourceFrame(ttk.Frame):
         self.style.configure('MintChip.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#3EB489')
         self.style.configure('Cherry.TLabel', font=('TkTextFont', self.text_font['size']), foreground='#DE3163')
         self.style.configure('FrenchVanilla.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#D7BB6F')
+        self.style.configure('Peach.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground="#FFC75D")
+        self.style.configure('CookiesAndCream.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'))
+        self.style.configure('BananaSplit.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#BBBA82')
+        self.style.configure('RockyRoad.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#5B3F36')
+        self.style.configure('Mango.TLabel', font=('TkTextFont', self.text_font['size'], 'bold'), foreground='#FFB56F')
 
         # resources
         ttk.Label(self, text='Resources').grid(column=0, row=0, columnspan=3, sticky='W')
@@ -118,7 +123,17 @@ class ResourceFrame(ttk.Frame):
         # cherry ice cream
         self.cherry_i_c = Resource(frame=self, row=8, name='    Cherry', max_num=400, style='Cherry.TLabel')
         # french vanilla ice cream
-        self.french_vanilla_i_c = Resource(frame=self, row=8, name='    French Vanilla', max_num=400, style='FrenchVanilla.TLabel')
+        self.french_vanilla_i_c = Resource(frame=self, row=9, name='    French Vanilla', max_num=400, style='FrenchVanilla.TLabel')
+        # cookies and cream ice cream
+        self.cookies_and_cream_i_c = Resource(frame=self, row=10, name='    Cookies and Cream', max_num=400, style='CookiesAndCream.TLabel')
+        # peach ice cream
+        self.peach_i_c = Resource(frame=self, row=11, name='    Peach', max_num=400, style='Peach.TLabel')
+        # banana split ice cream
+        self.banana_split = Resource(frame=self, row=12, name='    Banana Split', max_num=400, style='BananaSplit.TLabel')
+        # rocky road ice cream
+        self.rocky_road = Resource(frame=self, row=13, name='    Rocky Road', max_num=400, style='RockyRoad.TLabel')
+        # mango ice cream
+        self.mango_i_c = Resource(frame=self, row=14, name='    Mango', max_num=400, style='Mango.TLabel')
         # TODO: add more resources here
 
         # TODO: maybe make a hovertip over the per second labels to show where the per seconds are coming from
@@ -129,6 +144,7 @@ class ResourceFrame(ttk.Frame):
         self.resource_list = [
             self.milk, self.ice_cream, self.vanilla_i_c, self.strawberry_i_c, self.chocolate_i_c,
             self.neapolitan_i_c, self.mint_chip_i_c, self.cherry_i_c, self.french_vanilla_i_c,
+            self.cookies_and_cream_i_c, self.peach_i_c, self.banana_split, self.rocky_road, self.mango_i_c,
         ]
 
 
@@ -170,13 +186,27 @@ class IngredientFrame(ttk.Frame):
         # cherry (fruit)
         self.cherry_fruit = Ingredient(frame=self, row=5, name='Cherry (fruit)', max_num=500)
         # egg
-        self.egg = Ingredient(frame=self, row=6, name='Egg', max_num=750)
+        self.egg = Ingredient(frame=self, row=6, name='Egg', max_num=500)
+        # cookie
+        self.sandwich_cookie = Ingredient(frame=self, row=7, name='Sandwich Cookie', max_num=500)
+        # peach (fruit)
+        self.peach_fruit = Ingredient(frame=self, row=8, name='Peach (fruit)', max_num=500)
+        # banana
+        self.banana = Ingredient(frame=self, row=9, name='Banana', max_num=500)
+        # almond
+        self.almond = Ingredient(frame=self, row=10, name='Almond', max_num=500)
+        # marshmallow
+        self.marshmallow = Ingredient(frame=self, row=11, name='Marhsmallow', max_num=500)
+        # mango (fruit)
+        self.mango_fruit = Ingredient(frame=self, row=12, name='Mango', max_num=500)
+
         # TODO: add more ingredients here
 
         # keep list of all ingredients
         self.ingredient_list = [
             self.vanilla_spice, self.strawberry_fruit, self.chocolate_food, self.peppermint,
-            self.cherry_fruit, self.egg,
+            self.cherry_fruit, self.egg, self.sandwich_cookie, self.peach_fruit, self.banana,
+            self.almond, self.marshmallow, self.mango_fruit,
         ]
 
 
@@ -287,7 +317,6 @@ class Converter(Building):
         self.activated_down_b = ttk.Button(self.parent, text='-', state='disabled', width=1, command=lambda: self.activated_increase(-1))
         self.activated_down_b.grid(column=col+2, row=row, padx=(0, 5), sticky='WE')
         self.activated_down_b.grid_remove() # show at same time as activated_up_b
-
         self.previous_activated_num = self.activated_num # used in available()
 
     def activated_increase(self, i):
@@ -400,8 +429,8 @@ class StorageBuilding(Building):
 
 class EfficiencyBuilding(Building):
     """
-    Building that improves the production of a sequence of Resources
-    by a sequence of percentages.
+    Building that improves the production of a sequence of Buildings'
+    new resources by a sequence of percentages.
     """
 
     def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, applied_buildings, efficiency_increases, colspan=3):
@@ -417,7 +446,6 @@ class EfficiencyBuilding(Building):
                 self.new_resources.append(new_resource)
                 self.bonus_vals.append(bonus_val)
         super().__init__(parent, r_frame, buy_resources, self.new_resources, costs, cost_mults, self.bonus_vals, name, col, row, visible_resource, visible_value, colspan)
-        
 
     def buy(self):
         # deduct cost from Resource(s) to buy building
@@ -454,6 +482,31 @@ class EfficiencyBuilding(Building):
 
     def use(self):
         pass # do nothing
+
+
+class StorageAndEfficiencyBuilding(EfficiencyBuilding):
+    """Building with that increases both storage and efficiency"""
+
+    # copying code from StorageBuilding rather than trying to do multiple inheritance stuff
+    def __init__(self, parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, applied_buildings, efficiency_increases, expand_resources, expand_vals,  colspan=3):
+        super().__init__(parent, r_frame, buy_resources, costs, cost_mults, name, col, row, visible_resource, visible_value, applied_buildings, efficiency_increases)
+        self.expand_resources = expand_resources # sequence of resources whos max_num is to be expanded
+        self.expand_vals = expand_vals # sequence of values to expand each resource by
+        self.bought_before = False # True if the StorageAndEfficiencyBuilding has been bought before
+
+    def buy(self):
+        for expand_resource, expand_val in zip(self.expand_resources, self.expand_vals):
+            expand_resource.update_max_num(expand_val)
+        super().buy()
+        if not self.bought_before:
+            messagebox.showinfo(title='Congratulations!', message="Thanks for playing!", detail="You've bought the last building in the game.\nYou can keep playing, but there's nothing else to discover.")
+            self.bought_before = True
+
+    def sell(self, s):
+        for i in range(s):
+            for expand_resource, expand_val in zip(self.expand_resources, self.expand_vals):
+                expand_resource.update_max_num(-expand_val)
+        super().sell(s)
 
 
 class Convert:
@@ -510,7 +563,7 @@ class ControlPanelFrame(ttk.Frame):
 
         # button for collecting milk
         self.collect_b = ttk.Button(self, text='Collect', width=25, command=lambda: self.r_frame.milk.update(1))
-        self.collect_b.grid(column=0, row=0, padx=5, pady=5, sticky='W')
+        self.collect_b.grid(column=0, row=0, columnspan=3, padx=5, pady=5, sticky='EW')
         self.collect_b_hovertip = Hovertip(self.collect_b, 'Collect some milk...', hover_delay=10)
         # convert milk to ice cream
         self.convert_milk_i_c = Convert(self, 'Make ice cream', (self.r_frame.milk,), self.r_frame.ice_cream, [25], 1, 3, 0, self.r_frame.milk, 0, 3)
@@ -522,7 +575,7 @@ class ControlPanelFrame(ttk.Frame):
         self.cow.create_hovertip('Get a cow')
         # factory
         self.factory = Converter(self, self.r_frame, (self.r_frame.ice_cream,), (self.r_frame.milk,), (self.r_frame.ice_cream,), [10], [1.75], [1], (self.convert_milk_i_c.costs[0]/10,), 'Factory', 3, 1, self.r_frame.ice_cream, 1)
-        self.factory.create_hovertip("Converts milk to ice cream. Factories stop running\nif you don't have enough milk and continue\nrunning when you have enough.")
+        self.factory.create_hovertip("Converts milk to ice cream.\nFactories stop running if you don't have enough milk\nand continue running when you have enough.\nFactories still work even without room for more ice cream.")
         # vanilla plantation
         self.vanilla_plantation = Building(self, self.r_frame, (self.r_frame.ice_cream,), (self.i_frame.vanilla_spice,), [10], [1.29], [0.15], 'Vanilla Plantation', 0, 2, self.r_frame.ice_cream, 1)
         self.vanilla_plantation.create_hovertip('Plantation for growing Vanilla planifolia')
@@ -546,7 +599,7 @@ class ControlPanelFrame(ttk.Frame):
         self.milking_machine.create_hovertip('Each machine improves the milk output of your cows by 20%')
         # cherry orchard
         self.cherry_orchard = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c, self.r_frame.mint_chip_i_c), (self.i_frame.cherry_fruit,), [5, 7], [1.2, 1.18], [0.18], 'Cherry Orchard', 0, 5, self.r_frame.mint_chip_i_c, 1)
-        self.cherry_orchard.create_hovertip('Plantation for growing cherries')
+        self.cherry_orchard.create_hovertip('Orchard for growing cherries')
         # warehouse
         warehouse_expand_vals = [] # contains amount to increase each ingredient in ingredient_list by
         for ingredient in self.i_frame.ingredient_list:
@@ -559,15 +612,54 @@ class ControlPanelFrame(ttk.Frame):
         # chicken coop
         self.chicken_coop = Building(self, self.r_frame, (self.r_frame.cherry_i_c,), (self.i_frame.egg,), [5], [1.18], [0.72], 'Chicken Coop', 3, 6, self.r_frame.cherry_i_c, 1)
         self.chicken_coop.create_hovertip('Build a coop to get eggs from chickens')
-        # TODO: add more buildings here
+        # cookie manufacturer
+        self.cookie_manufacturer = Converter(self, self.r_frame, (self.r_frame.chocolate_i_c, self.r_frame.french_vanilla_i_c), (self.r_frame.milk, self.i_frame.chocolate_food), (self.i_frame.sandwich_cookie,), [10, 5], [1.2, 1.18], [0.25], [3, 4], 'Cookie Manufacturer', 0, 7, self.r_frame.french_vanilla_i_c, 1)
+        self.cookie_manufacturer.create_hovertip('Build a manufacturer that specialises in creating sandwich cookies.\nManufacturers stop running if you run out of chocolate and\nfrench vanilla ice cream and continue when you have enough.\nManufacturers still work even wtihout room for more sandwich cookies.')
+        # peach orchard
+        self.peach_orchard = Building(self, self.r_frame, (self.r_frame.cherry_i_c, self.r_frame.french_vanilla_i_c), (self.i_frame.peach_fruit,), [9, 5], [1.12, 1.12], [0.24], 'Peach Orchard', 3, 7, self.r_frame.french_vanilla_i_c, 1)
+        self.peach_orchard.create_hovertip('Orchard for growing peaches')
+        # banana plantation
+        self.banana_plantation = Building(self, self.r_frame, (self.r_frame.peach_i_c,), (self.i_frame.banana,), [5], [1.27], [0.16], 'Banana Plantation', 0, 8, self.r_frame.peach_i_c, 1)
+        self.banana_plantation.create_hovertip("Plantation for growing bananas (Musa acuminata)")
+        # almond orchard
+        self.almond_orchard = Building(self, self.r_frame, (self.r_frame.peach_i_c,), (self.i_frame.almond,), [5], [1.27], [0.18], 'Almond Orchard', 3, 8, self.r_frame.banana_split, 1)
+        self.almond_orchard.create_hovertip('Orchard for growing almonds')
+        # marshmallow producer
+        self.marshmallow_producer = Building(self, self.r_frame, (self.r_frame.banana_split, self.r_frame.cookies_and_cream_i_c), (self.i_frame.marshmallow,), [5, 5], [1.28, 1.33], [0.21], 'Marshmallow Producer', 0, 9, self.r_frame.banana_split, 1)
+        self.marshmallow_producer.create_hovertip('Produces marshmallows')
+        # mango orchard
+        self.mango_orchard = Building(self, self.r_frame, (self.r_frame.banana_split,), (self.i_frame.mango_fruit,), [5], [1.13], [0.11], 'Mango Orchard', 3, 9, self.r_frame.banana_split, 1)
+        self.mango_orchard.create_hovertip('Orchard for growing mangoes')
+        # chocolate R&D
+        self.chocolate_r_n_d = EfficiencyBuilding(self, self.r_frame, (self.r_frame.chocolate_i_c, self.r_frame.mint_chip_i_c, self.r_frame.cookies_and_cream_i_c), [14, 12, 10], [1.51, 1.5, 1.49], 'Chocolate R&D', 0, 10, self.i_frame.marshmallow, 1, (self.cow, self.chocolate_processor, self.peppermint_farm, self.cookie_manufacturer, self.almond_orchard, self.marshmallow_producer, self.factory), (0.30, 0.30, 0.30, 0.25, 0.20, 0.20, 0.10))
+        self.chocolate_r_n_d.create_hovertip('Invest in research and development for the chocolate industry')
+        # universal enhancer
+        fruit_buildings = [ # list of buildings that universal enhancer applies to
+            self.strawberry_field, self.cherry_orchard, self.peach_orchard, self.banana_plantation, self.almond_orchard, self.mango_orchard
+        ]
+        self.universal_enhancer = EfficiencyBuilding(self, self.r_frame, (self.r_frame.mango_i_c,), [25], [1.8], 'Universal Enhancer', 3, 10, self.r_frame.mango_i_c, 1, fruit_buildings, [0.35 for i in range(len(fruit_buildings))])
+        self.universal_enhancer.create_hovertip('Enhances the efficiency of fruit-dedicated buildings')
+        # depository, expand_resources is a shallow copy of all the resources in self.r_frame.resource_list and ingredients in self.i_frame.ingredient_list
+        self.depository = StorageBuilding(self, self.r_frame, (self.r_frame.rocky_road,), [25], [1.8], 'Depository', 0, 11, self.r_frame.rocky_road, 1, self.r_frame.resource_list+self.i_frame.ingredient_list, [5000]+[1600]+[800 for r in range(len(self.r_frame.resource_list)-2)]+[1000 for i in range(len(self.i_frame.ingredient_list))])
+        self.depository.create_hovertip('Provides space for depositing all resources and ingredients')
 
         # keep list of Buildings/Converters, when you add a new Bulding, you need to add it here
         self.buildings = [
             self.cow, self.factory, self.vanilla_plantation, self.strawberry_field, self.chocolate_processor,
             self.peppermint_farm, self.cold_storage, self.milking_machine, self.cherry_orchard, self.warehouse,
-            self.neapolitan_investor, self.chicken_coop,
+            self.neapolitan_investor, self.chicken_coop, self.cookie_manufacturer, self.peach_orchard,
+            self.banana_plantation, self.almond_orchard, self.marshmallow_producer, self.mango_orchard,
+            self.chocolate_r_n_d, self.universal_enhancer, self.depository,
         ]
 
+        # special building
+        produce_buildings = [] # list of buildings that special building applies to
+        for building in self.buildings:
+            if not isinstance(building, (StorageBuilding, EfficiencyBuilding)):
+                produce_buildings.append(building)
+        self.special_building = StorageAndEfficiencyBuilding(self, self.r_frame, self.r_frame.resource_list, [50 for i in range(len(self.r_frame.resource_list))], [1.2], 'Special Building', 3, 11, self.r_frame.rocky_road, 1, produce_buildings, [1.00 for i in range(len(produce_buildings))], self.r_frame.resource_list+self.i_frame.ingredient_list, [100000 for i in range(len(self.r_frame.resource_list+self.i_frame.ingredient_list))] )
+        self.special_building.create_hovertip('Special building with special effects')
+        self.buildings.append(self.special_building)
 
 class IceCreamFrame(ttk.Frame):
     """Contains Buttons used for converting Ingredients to Ice Cream"""
@@ -605,18 +697,35 @@ class IceCreamFrame(ttk.Frame):
         self.neapolitan_i_c_convert = Convert(self, 'Neapolitan', (self.r_frame.vanilla_i_c, self.r_frame.strawberry_i_c, self.r_frame.chocolate_i_c), self.r_frame.neapolitan_i_c, [3, 3, 3], 1, 0, 4, self.r_frame.milk, 0)
         self.neapolitan_i_c_convert.create_hovertip('Produce neapolitan ice cream')
         # mint chocolate chip ice cream
-        self.mint_chip_i_c_convert = Convert(self, 'Mint Chocolate Chip', (self.r_frame.ice_cream, self.i_frame.chocolate_food, self.i_frame.peppermint), self.r_frame.mint_chip_i_c, [3, 4, 5], 1, 0, 5, self.r_frame.neapolitan_i_c, 1)
+        self.mint_chip_i_c_convert = Convert(self, 'Mint Chocolate Chip', (self.r_frame.ice_cream, self.i_frame.chocolate_food, self.i_frame.peppermint), self.r_frame.mint_chip_i_c, [3, 4, 5], 1, 0, 5, self.i_frame.peppermint, 1)
         self.mint_chip_i_c_convert.create_hovertip('Produce mint chocolate chip ice cream')
         # cherry ice cream
-        self.cherry_i_c_convert = Convert(self, 'Cherry', (self.r_frame.ice_cream, self.i_frame.cherry_fruit), self.r_frame.cherry_i_c, [3, 8], 1, 0, 6, self.r_frame.mint_chip_i_c, 1)
+        self.cherry_i_c_convert = Convert(self, 'Cherry', (self.r_frame.ice_cream, self.i_frame.cherry_fruit), self.r_frame.cherry_i_c, [4, 8], 1, 0, 6, self.i_frame.cherry_fruit, 1)
         self.cherry_i_c_convert.create_hovertip('Produce cherry ice cream')
         # french vanilla ice cream
-        self.french_vanilla_i_c_convert = Convert(self, 'French Vanilla', (self.r_frame.ice_cream, self.i_frame.vanilla_spice, self.i_frame.egg), self.r_frame.french_vanilla_i_c, [3, 8, 6], 1, 0, 7, self.i_frame.egg, 1)
+        self.french_vanilla_i_c_convert = Convert(self, 'French Vanilla', (self.r_frame.ice_cream, self.i_frame.vanilla_spice, self.i_frame.egg), self.r_frame.french_vanilla_i_c, [5, 7, 7], 1, 0, 7, self.i_frame.egg, 1)
+        self.french_vanilla_i_c_convert.create_hovertip('Produce vanilla ice cream')
+        # cookies and cream ice cream
+        self.cookies_and_cream_i_c_convert = Convert(self, 'Cookies and Cream', (self.r_frame.ice_cream, self.i_frame.sandwich_cookie), self.r_frame.cookies_and_cream_i_c, [8, 5], 1, 0, 8, self.i_frame.sandwich_cookie, 1)
+        self.cookies_and_cream_i_c_convert.create_hovertip('Produce cookies and cream ice cream')
+        # peach ice cream
+        self.peach_i_c_convert = Convert(self, 'Peach', (self.r_frame.ice_cream, self.i_frame.peach_fruit), self.r_frame.peach_i_c, [6, 10], 1, 0, 9, self.i_frame.peach_fruit, 1)
+        self.peach_i_c_convert.create_hovertip('Produce peach ice cream')
+        # banana split
+        self.banana_split_convert = Convert(self, 'Banana Split', (self.r_frame.neapolitan_i_c, self.i_frame.banana, self.i_frame.cherry_fruit), self.r_frame.banana_split, [3, 1, 3], 1, 0, 10, self.i_frame.banana, 1)
+        self.banana_split_convert.create_hovertip('Create a banana split')
+        # rocky road ice cream
+        self.rocky_road_convert = Convert(self, 'Rocky Road', (self.r_frame.chocolate_i_c, self.i_frame.almond, self.i_frame.marshmallow), self.r_frame.rocky_road, [12, 8, 8], 1, 0, 11, self.i_frame.marshmallow, 1)
+        self.rocky_road_convert.create_hovertip('Produce rocky road ice cream')
+        # mango ice cream convert
+        self.mango_i_c_convert = Convert(self, 'Mango', (self.r_frame.ice_cream, self.i_frame.mango_fruit), self.r_frame.mango_i_c, [14, 6], 1, 0, 12, self.i_frame.mango_fruit, 1)
+        self.mango_i_c_convert.create_hovertip('Produce mango ice cream')
 
         # keep list of ice creams, when you add a new ice cream, you need to add it here
         self.i_c_converts = [
             self.vanilla_i_c_convert, self.strawberry_i_c_convert, self.chocolate_i_c_convert, self.neapolitan_i_c_convert,
-            self.mint_chip_i_c_convert, self.cherry_i_c_convert, self.french_vanilla_i_c_convert,
+            self.mint_chip_i_c_convert, self.cherry_i_c_convert, self.french_vanilla_i_c_convert, self.cookies_and_cream_i_c_convert,
+            self.peach_i_c_convert, self.banana_split_convert, self.rocky_road_convert, self.mango_i_c_convert,
         ]
 
 
@@ -648,6 +757,7 @@ class SellObject:
         self.sp.set(0)
 
     def show_sp(self):
+        self.sp_label['text'] = self.building.button.cget('text')
         self.sp_label.grid()
         self.sp.grid()
 
@@ -703,6 +813,9 @@ class HovertipButtons(Hovertip):
     def produce_text(self, host, description):
         text = description + '\n' # string to be inputted
         text += '—————\nCost:'
+        if isinstance(host, StorageAndEfficiencyBuilding):
+            text += '\n50 of all Resources\n—————\nEffects:\nAll production buildings production bonus: 100%\nMax all Resources and Ingredients: +100000'
+            return text
         for buy_resource, cost in zip(host.buy_resources, host.costs):
             text += f'\n{round(cost, 2)} {buy_resource.name.strip()}'
         if isinstance(host, Building):
@@ -722,6 +835,13 @@ class HovertipButtons(Hovertip):
             # exception b/c we don't want every value listed for warehouses
             if host.name == 'Warehouse':
                 text += f'\nMax Ingredient (every): +{host.expand_vals[0]}'
+                return text
+            # exception b/c we don't want every value listed for depository
+            if host.name == 'Depository':
+                for i in range(2):
+                    text += f'\nMax {host.expand_resources[i].name}: +{host.expand_vals[i]}'
+                text += f'\nMax Ice Cream (flavored): +{host.expand_vals[2]}'
+                text += f'\nMax Ingredient (every): +{host.expand_vals[14]}'
                 return text
             for expand_resource, expand_val in zip(host.expand_resources, host.expand_vals):
                 text += f'\nMax {expand_resource.name.strip()}: +{expand_val}'
@@ -832,7 +952,7 @@ class MainApplication:
             self.nb.tab(2, state='hidden') 
             self.sell_tab_visible = False
 
-        self.c_frame.convert_milk_i_c.available() # copnvert_milk_i_c is not in i_c_frame
+        self.c_frame.convert_milk_i_c.available() # convert_milk_i_c is not in i_c_frame
         for ice_cream in self.i_c_frame.i_c_converts: 
             ice_cream.available() # make Convert buttons available
             if not ice_cream.button_visible and ice_cream.visible_resource.resource.get() >= ice_cream.visible_value:
@@ -842,18 +962,15 @@ class MainApplication:
             self.nb.tab(1, state='normal')
             self.i_c_tab_visible = True
 
-        self.parent.after(10, self.available)
+        self.parent.after(100, self.available)
     
     def cheat(self):
         i = 1000
-        self.r_frame.milk.update(i)
-        self.r_frame.ice_cream.update(i)
-        self.i_frame.vanilla_spice.update(i)
-        self.i_frame.strawberry_fruit.update(i)
-        self.i_frame.chocolate_food.update(i)
-        self.i_frame.peppermint.update(i)
-        self.i_frame.cherry_fruit.update(i)
-        self.i_frame.egg.update(i)
+        for resource in self.r_frame.resource_list:
+            resource.update(i)
+
+        for ingredient in self.i_frame.ingredient_list:
+            ingredient.update(i)
 
 
 if __name__ == '__main__':
