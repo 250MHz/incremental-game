@@ -237,7 +237,6 @@ class Building:
         self.visible_resource = visible_resource # the Resource used to tell if the button should be visible
         self.visible_value = visible_value # number of visible_resources needed to make button visible
         self.efficiency_bonus = 1.0 # modify the bonus given to use(), this bonus applies to the building as a whole, all things the buliding produces is affected
-        # TODO: use the efficiency_bonus value to add a [+x%] in ResourceFrame
 
     def buy(self):
         # deduct cost from Resource(s) to buy building
@@ -511,6 +510,7 @@ class StorageAndEfficiencyBuilding(EfficiencyBuilding):
 
 class Convert:
     """Makes a Button that exchanges some old resource for a new resource."""
+    achievement_bonus = 1.0 # achievemnt bonus applies to all ice cream conversions
 
     def __init__(self, parent, text, buy_resources, new_resource, costs, reward, col, row, visible_resource, visible_value, colspan=1):
         self.buy_resources = buy_resources # Resource(s) that gets converted into new_resource
@@ -535,7 +535,7 @@ class Convert:
                 for buy_resource, cost in zip(self.buy_resources, self.costs):
                     # no need to check if updating results in neagtive buy_resource b/c it was done above
                     buy_resource.update(-cost)
-                self.new_resource.update(self.reward)
+                self.new_resource.update(self.reward * Convert.achievement_bonus)
 
     def available(self):
         for buy_resource, cost in zip(self.buy_resources, self.costs):
@@ -592,7 +592,7 @@ class ControlPanelFrame(ttk.Frame):
         cold_expand_vals = [] # contains amount to increase each resource in resource_list by
         for resource in self.r_frame.resource_list:
             cold_expand_vals.append(resource.max_num) # double the max amount of each resource
-        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.mint_chip_i_c,), [50, 10], [1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
+        self.cold_storage = StorageBuilding(self, self.r_frame, (self.r_frame.mint_chip_i_c,), [12], [1.25], 'Cold Storage', 0, 4, self.r_frame.mint_chip_i_c, 1, self.r_frame.resource_list, cold_expand_vals)
         self.cold_storage.create_hovertip('Provides space to store all cold resources.')
         # milking machine
         self.milking_machine = EfficiencyBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.neapolitan_i_c), [100, 6], [1.15, 1.5], 'Milking Machine', 3, 4, self.r_frame.mint_chip_i_c, 1, [self.cow], [0.20])
@@ -855,6 +855,52 @@ class HovertipButtons(Hovertip):
         return text
 
 
+class AchievementFrame(ttk.Frame):
+
+    def __init__(self, parent, main):
+        super().__init__(parent)
+        resource_and_ingredient_list = main.r_frame.resource_list + main.i_frame.ingredient_list
+        self.achievement_bonus_var = tk.StringVar()
+        self.update_label()
+        self.achievement_bonus_lb = ttk.Label(self, textvariable=self.achievement_bonus_var)
+        Hovertip(self.achievement_bonus_lb, 'As you gain more achievements, the bonus % that\nyou get from converting ice cream increases.', hover_delay=10)
+        self.achievement_bonus_lb.grid(column=0, row=0, padx=5, pady=5, sticky='NW')
+
+        self.values = [] # each index has a tuple, (resource, num_required, bonus)
+        for resource in resource_and_ingredient_list:
+            self.values.append([resource, 5, 0.0069])
+            self.values.append([resource, 10, 0.0135])
+            self.values.append([resource, 50, 0.0204])
+            self.values.append([resource, 100, 0.0339])
+            self.values.append([resource, 1000, 0.0678])
+        # create the requirement strings
+        self.requirements = []
+        for value in self.values:
+            if value[0].name == 'Milk':
+                self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()}s')
+            elif value[0].name == 'Ice Cream':
+                self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()}')
+            elif isinstance(value[0], Ingredient):
+                self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()}')
+            else:
+                self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()} ice cream')
+        self.valuesvar = tk.StringVar(value=self.requirements)
+        self.lbox = tk.Listbox(self, listvariable=self.valuesvar, background='#F04124', foreground='white', selectbackground='#EA2F10', selectforeground='black', height=10, width=55)
+        self.lbox.grid(column=0, row=1, padx=5, pady=5, sticky='EW')
+        self.done = [False for i in range(len(self.requirements))] # which achievements are complete
+
+    def update(self):
+        for i in range(self.lbox.size()):
+            if not self.done[i] and self.values[i][0].resource.get() >= self.values[i][1]:
+                self.lbox.itemconfigure(i, background='#43AC6A', foreground='white', selectbackground='#3C9A5F', selectforeground='#2D2222')
+                Convert.achievement_bonus += self.values[i][2]
+                self.done[i] = True
+        self.update_label()
+
+    def update_label(self):
+        self.achievement_bonus_var.set(f'Achievement Bonus: {round((Convert.achievement_bonus - 1)*100, 2)}%')
+
+
 class MainApplication():
 
     def __init__(self, parent):
@@ -872,9 +918,11 @@ class MainApplication():
         self.r_frame = ResourceFrame(self.parent)
         self.r_frame.grid(column=0, row=0, padx=10, pady=5, sticky='NWES')
 
+        ttk.Separator(self.r_frame, orient='horizontal').grid(column=0, row=98, pady=5, sticky='EW')
+
         # ingredients frame
         self.i_frame = IngredientFrame(self.r_frame)
-        self.i_frame.grid(column=0, row=99, columnspan=4, padx=0, pady=(5, 0), sticky='WS')
+        self.i_frame.grid(column=0, row=99, columnspan=4, sticky='WS')
         
         # create a notebook for holding tabs
         #self.frame_for_nb = ttk.Frame()
@@ -902,6 +950,10 @@ class MainApplication():
         # keep selling spinboxes hidden until building is acquired for the first time
         self.sell_tab_visible = False
 
+        # achievement frame
+        self.achievement_frame = AchievementFrame(self.nb, self)
+        self.nb.add(self.achievement_frame, text='Achievements')
+
         # use buildings
         self.use_buildings()
 
@@ -911,15 +963,16 @@ class MainApplication():
         # add Menu
         menubar = tk.Menu(parent)
 
-        # cheat button for testing new features
-        self.cheat_b = ttk.Button(self.parent, text='Cheat increase', command=self.cheat)
-        def enable_cheat_b(*args):
-            enable_cheats = messagebox.askyesno(title='Enable cheats', message='Enable the cheat button?', default='no')
-            if enable_cheats:
-                self.cheat_b.grid()
         # add this as an option to the menu
         menu_options = tk.Menu(menubar)
         menubar.add_cascade(menu=menu_options, label='Options')
+        # cheat button for testing new features
+        self.cheat_b = ttk.Button(self.parent, text='Cheat increase', command=self.cheat)
+        def enable_cheat_b(*args):
+            enable_cheats = messagebox.askyesno(title='Enable cheats', message='Enable the cheat button?', detail='This cannot be undone', default='no')
+            if enable_cheats:
+                self.cheat_b.grid()
+                menu_options.entryconfigure(0, state='disabled')
         menu_options.add_command(label='Enable cheats', command=enable_cheat_b)
         menu_options.add_separator()
 
@@ -974,11 +1027,12 @@ class MainApplication():
         if not self.i_c_tab_visible and self.r_frame.ice_cream.resource.get() > 0:
             self.nb.tab(1, state='normal')
             self.i_c_tab_visible = True
-
+        # update achievements
+        self.achievement_frame.update()
         self.parent.after(100, self.available)
     
     def cheat(self):
-        i = 1000
+        i = 100
         for resource in self.r_frame.resource_list:
             resource.update(i)
 
