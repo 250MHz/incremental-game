@@ -499,7 +499,7 @@ class StorageAndEfficiencyBuilding(EfficiencyBuilding):
             expand_resource.update_max_num(expand_val)
         super().buy()
         if not self.bought_before:
-            messagebox.showinfo(title='Congratulations!', message="Thanks for playing!", detail="You've bought the last building in the game.\nYou can keep playing, but there's nothing else to discover.")
+            messagebox.showinfo(message="Congratulations!", detail="Thanks for playing!\nYou've bought the last building in the game.\nYou can keep playing, but there's nothing else to discover.")
             self.bought_before = True
 
     def sell(self, s):
@@ -660,6 +660,7 @@ class ControlPanelFrame(ttk.Frame):
         self.special_building = StorageAndEfficiencyBuilding(self, self.r_frame, self.r_frame.resource_list, [50 for i in range(len(self.r_frame.resource_list))], [1.2], 'Special Building', 3, 11, self.r_frame.rocky_road, 1, produce_buildings, [1.00 for i in range(len(produce_buildings))], self.r_frame.resource_list+self.i_frame.ingredient_list, [100000 for i in range(len(self.r_frame.resource_list+self.i_frame.ingredient_list))] )
         self.special_building.create_hovertip('Special building with special effects')
         self.buildings.append(self.special_building)
+
 
 class IceCreamFrame(ttk.Frame):
     """Contains Buttons used for converting Ingredients to Ice Cream"""
@@ -864,14 +865,6 @@ class MainApplication:
         self.parent.columnconfigure(1, weight=1, minsize=300)
         self.parent.rowconfigure(0, weight=1)
 
-        menubar = tk.Menu(parent)
-        menu_help = tk.Menu(menubar)
-        menubar.add_cascade(menu=menu_help, label='Help')
-        menu_help_details = 'Section 4, Group 10:\nDavid\nJennifer\nNathan'
-        menu_help.add_command(label='About', command=lambda: messagebox.showinfo(title='About', message='Incremental game for GUI project', detail=menu_help_details))
-        menu_help.add_separator()
-        parent['menu'] = menubar
-
         self.style = ttk.Style()
         self.text_font = font.nametofont('TkTextFont')
 
@@ -915,9 +908,29 @@ class MainApplication:
         # see if buttons are available and visible
         self.available()
 
-        # cheat button for testing new features, delete in final version
+        # add Menu
+        menubar = tk.Menu(parent)
+
+        # cheat button for testing new features
         self.cheat_b = ttk.Button(self.parent, text='Cheat increase', command=self.cheat)
-        self.cheat_b.grid()
+        def enable_cheat_b(*args):
+            enable_cheats = messagebox.askyesno(title='Enable cheats', message='Enable the cheat button?', default='no')
+            if enable_cheats:
+                self.cheat_b.grid()
+        # add this as an option to the menu
+        menu_options = tk.Menu(menubar)
+        menubar.add_cascade(menu=menu_options, label='Options')
+        menu_options.add_command(label='Enable cheats', command=enable_cheat_b)
+        menu_options.add_separator()
+
+        # add help menu
+        menu_help = tk.Menu(menubar)
+        menubar.add_cascade(menu=menu_help, label='Help')
+        menu_help_details = 'Section 4, Group 10:\nDavid\nJennifer\nNathan'
+        menu_help.add_command(label='About', command=lambda: messagebox.showinfo(title='About', message='Incremental game for GUI project', detail=menu_help_details))
+        menu_help.add_separator()
+        parent['menu'] = menubar
+
 
     def use_buildings(self):
         """Increase the value of Resources every second."""
