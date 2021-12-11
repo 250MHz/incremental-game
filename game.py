@@ -861,7 +861,6 @@ class AchievementFrame(ttk.Frame):
         super().__init__(parent)
         resource_and_ingredient_list = main.r_frame.resource_list + main.i_frame.ingredient_list
         self.achievement_bonus_var = tk.StringVar()
-        self.update_label()
         self.achievement_bonus_lb = ttk.Label(self, textvariable=self.achievement_bonus_var)
         Hovertip(self.achievement_bonus_lb, 'As you gain more achievements, the bonus % that\nyou get from converting ice cream increases.', hover_delay=10)
         self.achievement_bonus_lb.grid(column=0, row=0, padx=5, pady=5, sticky='NW')
@@ -890,18 +889,25 @@ class AchievementFrame(ttk.Frame):
         s = ttk.Scrollbar(self, orient='vertical', command=self.lbox.yview) # add a scrollbar
         s.grid(column=1, row=1, rowspan=1, sticky='NS')
         self.lbox['yscrollcommand'] = s.set
+        self.prog_bar = ttk.Progressbar(self, orient='horizontal', maximum=float(len(self.requirements)+0.01),mode='determinate')
+        self.completion = tk.StringVar()
+        ttk.Label(self, textvariable=self.completion).grid(column=0, row=2, padx=5, pady=5, sticky='EW')
+        self.prog_bar.grid(column=0, row=3, padx=5, pady=5, sticky='EW')
         self.done = [False for i in range(len(self.requirements))] # which achievements are complete
+        self.update_label()
 
     def update(self):
         for i in range(self.lbox.size()):
             if not self.done[i] and self.values[i][0].resource.get() >= self.values[i][1]:
                 self.lbox.itemconfigure(i, background='#43AC6A', foreground='white', selectbackground='#3C9A5F', selectforeground='#2D2222')
                 Convert.achievement_bonus += self.values[i][2]
+                self.prog_bar.step(1.0)
                 self.done[i] = True
         self.update_label()
 
     def update_label(self):
         self.achievement_bonus_var.set(f'Achievement Bonus: {round((Convert.achievement_bonus - 1)*100, 2)}%')
+        self.completion.set(f'Completion ({self.done.count(True)}/{len(self.done)})')
 
 
 class MainApplication():
