@@ -886,7 +886,10 @@ class AchievementFrame(ttk.Frame):
                 self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()} ice cream')
         self.valuesvar = tk.StringVar(value=self.requirements)
         self.lbox = tk.Listbox(self, listvariable=self.valuesvar, background='#F04124', foreground='white', selectbackground='#EA2F10', selectforeground='black', height=10, width=55)
-        self.lbox.grid(column=0, row=1, padx=5, pady=5, sticky='EW')
+        self.lbox.grid(column=0, row=1, padx=(5, 0), pady=5, sticky='EW')
+        s = ttk.Scrollbar(self, orient='vertical', command=self.lbox.yview) # add a scrollbar
+        s.grid(column=1, row=1, rowspan=1, sticky='NS')
+        self.lbox['yscrollcommand'] = s.set
         self.done = [False for i in range(len(self.requirements))] # which achievements are complete
 
     def update(self):
