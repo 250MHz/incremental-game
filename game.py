@@ -657,7 +657,7 @@ class ControlPanelFrame(ttk.Frame):
         for building in self.buildings:
             if not isinstance(building, (StorageBuilding, EfficiencyBuilding)):
                 produce_buildings.append(building)
-        self.special_building = StorageAndEfficiencyBuilding(self, self.r_frame, self.r_frame.resource_list, [50 for i in range(len(self.r_frame.resource_list))], [1.2], 'Special Building', 3, 11, self.r_frame.rocky_road, 1, produce_buildings, [1.00 for i in range(len(produce_buildings))], self.r_frame.resource_list+self.i_frame.ingredient_list, [100000 for i in range(len(self.r_frame.resource_list+self.i_frame.ingredient_list))] )
+        self.special_building = StorageAndEfficiencyBuilding(self, self.r_frame, self.r_frame.resource_list, [50 for i in range(len(self.r_frame.resource_list))], [1.2 for i in range(len(self.r_frame.resource_list))], 'Special Building', 3, 11, self.r_frame.rocky_road, 1, produce_buildings, [1.00 for i in range(len(produce_buildings))], self.r_frame.resource_list+self.i_frame.ingredient_list, [100000 for i in range(len(self.r_frame.resource_list+self.i_frame.ingredient_list))] )
         self.special_building.create_hovertip('Special building with special effects')
         self.buildings.append(self.special_building)
 
@@ -815,7 +815,7 @@ class HovertipButtons(Hovertip):
         text = description + '\n' # string to be inputted
         text += '—————\nCost:'
         if isinstance(host, StorageAndEfficiencyBuilding):
-            text += '\n50 of all Resources\n—————\nEffects:\nAll production buildings production bonus: 100%\nMax all Resources and Ingredients: +100000'
+            text += f'\n{round(host.costs[0], 2)} of all Resources\n—————\nEffects:\nAll production buildings production bonus: 100%\nMax all Resources and Ingredients: +100000'
             return text
         for buy_resource, cost in zip(host.buy_resources, host.costs):
             text += f'\n{round(cost, 2)} {buy_resource.name.strip()}'
@@ -855,7 +855,7 @@ class HovertipButtons(Hovertip):
         return text
 
 
-class MainApplication:
+class MainApplication():
 
     def __init__(self, parent):
         self.parent = parent
