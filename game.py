@@ -68,10 +68,10 @@ class Resource:
         # update label showing the efficiency bonus
         self.current_efficiency_bonus = self.current_efficiency_bonus + p
         percentage = int(round(self.current_efficiency_bonus, 2) * 100)
-        if self.current_efficiency_bonus > 0:
+        if percentage > 0:
             self.efficiency_bonus_var.set(f'[+{percentage}%]')
             self.efficiency_bonus_label.config(foreground='#008000')
-        elif self.current_efficiency_bonus < 0:
+        elif percentage < 0:
             self.efficiency_bonus_var.set(f'[{percentage}%]')
             self.efficiency_bonus_label.config(foreground='#ff0000')
         else:
@@ -607,7 +607,7 @@ class ControlPanelFrame(ttk.Frame):
         self.warehouse = StorageBuilding(self, self.r_frame, (self.r_frame.ice_cream, self.r_frame.strawberry_i_c, self.r_frame.cherry_i_c), [125, 15, 5], [1.5, 1.2, 1.15], 'Warehouse', 3, 5, self.r_frame.cherry_i_c, 1, self.i_frame.ingredient_list, warehouse_expand_vals)
         self.warehouse.create_hovertip('Provides space to store your ingredients')
         # neapolitan investor
-        self.neapolitan_investor = Building(self, self.r_frame, (self.r_frame.neapolitan_i_c,), (self.i_frame.vanilla_spice, self.i_frame.strawberry_fruit, self.i_frame.chocolate_food), [12], [1.14], [2.32, 2.32, 2.32], 'Neapolitan Investor', 0, 6, self.r_frame.cherry_i_c, 1)
+        self.neapolitan_investor = EfficiencyBuilding(self, self.r_frame, (self.r_frame.neapolitan_i_c,), [7], [1.14], 'Neapolitan Investor', 0, 6, self.r_frame.cherry_i_c, 1, (self.vanilla_plantation, self.strawberry_field, self.chocolate_processor), (0.4, 0.4, 0.4))
         self.neapolitan_investor.create_hovertip('Invest in the Neapolitan ice cream trade')
         # chicken coop
         self.chicken_coop = Building(self, self.r_frame, (self.r_frame.cherry_i_c,), (self.i_frame.egg,), [5], [1.18], [0.72], 'Chicken Coop', 3, 6, self.r_frame.cherry_i_c, 1)
@@ -631,7 +631,7 @@ class ControlPanelFrame(ttk.Frame):
         self.mango_orchard = Building(self, self.r_frame, (self.r_frame.banana_split,), (self.i_frame.mango_fruit,), [5], [1.13], [0.11], 'Mango Orchard', 3, 9, self.r_frame.banana_split, 1)
         self.mango_orchard.create_hovertip('Orchard for growing mangoes')
         # chocolate R&D
-        self.chocolate_r_n_d = EfficiencyBuilding(self, self.r_frame, (self.r_frame.chocolate_i_c, self.r_frame.mint_chip_i_c, self.r_frame.cookies_and_cream_i_c), [14, 12, 10], [1.51, 1.5, 1.49], 'Chocolate R&D', 0, 10, self.i_frame.marshmallow, 1, (self.cow, self.chocolate_processor, self.peppermint_farm, self.cookie_manufacturer, self.almond_orchard, self.marshmallow_producer, self.factory), (0.30, 0.30, 0.30, 0.25, 0.20, 0.20, 0.10))
+        self.chocolate_r_n_d = EfficiencyBuilding(self, self.r_frame, (self.r_frame.chocolate_i_c, self.r_frame.mint_chip_i_c, self.r_frame.cookies_and_cream_i_c), [14, 12, 10], [1.51, 1.5, 1.49], 'Chocolate R&D', 0, 10, self.i_frame.marshmallow, 1, (self.cow, self.chocolate_processor, self.peppermint_farm, self.cookie_manufacturer, self.almond_orchard, self.marshmallow_producer, self.factory), (0.35, 0.30, 0.30, 0.25, 0.20, 0.20, 0.10))
         self.chocolate_r_n_d.create_hovertip('Invest in research and development for the chocolate industry')
         # universal enhancer
         fruit_buildings = [ # list of buildings that universal enhancer applies to
@@ -884,7 +884,9 @@ class AchievementFrame(ttk.Frame):
             else:
                 self.requirements.append(f'Obtain {value[1]} {value[0].name.strip()} ice cream')
         self.valuesvar = tk.StringVar(value=self.requirements)
-        self.lbox = tk.Listbox(self, listvariable=self.valuesvar, background='#F04124', foreground='white', selectbackground='#EA2F10', selectforeground='black', height=10, width=55)
+        self.lbox = tk.Listbox(self, listvariable=self.valuesvar, relief='flat', height=10, width=55)
+        for i in range(self.lbox.size()):
+            self.lbox.itemconfigure(i, background='#F04124', foreground='white', selectbackground='#EA2F10', selectforeground='#2D2222')
         self.lbox.grid(column=0, row=1, padx=(5, 0), pady=5, sticky='EW')
         s = ttk.Scrollbar(self, orient='vertical', command=self.lbox.yview) # add a scrollbar
         s.grid(column=1, row=1, rowspan=1, sticky='NS')
