@@ -622,13 +622,13 @@ class ControlPanelFrame(ttk.Frame):
         self.banana_plantation = Building(self, self.r_frame, (self.r_frame.peach_i_c,), (self.i_frame.banana,), [5], [1.27], [0.16], 'Banana Plantation', 0, 8, self.r_frame.peach_i_c, 1)
         self.banana_plantation.create_hovertip("Plantation for growing bananas (Musa acuminata)")
         # almond orchard
-        self.almond_orchard = Building(self, self.r_frame, (self.r_frame.peach_i_c,), (self.i_frame.almond,), [5], [1.27], [0.18], 'Almond Orchard', 3, 8, self.r_frame.banana_split, 1)
+        self.almond_orchard = Building(self, self.r_frame, (self.r_frame.peach_i_c,), (self.i_frame.almond,), [5], [1.27], [0.18], 'Almond Orchard', 3, 8, self.i_frame.banana, 1)
         self.almond_orchard.create_hovertip('Orchard for growing almonds')
         # marshmallow producer
-        self.marshmallow_producer = Building(self, self.r_frame, (self.r_frame.banana_split, self.r_frame.cookies_and_cream_i_c), (self.i_frame.marshmallow,), [5, 5], [1.28, 1.33], [0.21], 'Marshmallow Producer', 0, 9, self.r_frame.banana_split, 1)
+        self.marshmallow_producer = Building(self, self.r_frame, (self.r_frame.banana_split, self.r_frame.cookies_and_cream_i_c), (self.i_frame.marshmallow,), [5, 5], [1.28, 1.33], [0.21], 'Marshmallow Producer', 0, 9, self.i_frame.banana, 1)
         self.marshmallow_producer.create_hovertip('Produces marshmallows')
         # mango orchard
-        self.mango_orchard = Building(self, self.r_frame, (self.r_frame.banana_split,), (self.i_frame.mango_fruit,), [5], [1.13], [0.11], 'Mango Orchard', 3, 9, self.r_frame.banana_split, 1)
+        self.mango_orchard = Building(self, self.r_frame, (self.r_frame.banana_split,), (self.i_frame.mango_fruit,), [5], [1.13], [0.11], 'Mango Orchard', 3, 9, self.i_frame.marshmallow, 1)
         self.mango_orchard.create_hovertip('Orchard for growing mangoes')
         # chocolate R&D
         self.chocolate_r_n_d = EfficiencyBuilding(self, self.r_frame, (self.r_frame.chocolate_i_c, self.r_frame.mint_chip_i_c, self.r_frame.cookies_and_cream_i_c), [14, 12, 10], [1.51, 1.5, 1.49], 'Chocolate R&D', 0, 10, self.i_frame.marshmallow, 1, (self.cow, self.chocolate_processor, self.peppermint_farm, self.cookie_manufacturer, self.almond_orchard, self.marshmallow_producer, self.factory), (0.35, 0.30, 0.30, 0.25, 0.20, 0.20, 0.10))
